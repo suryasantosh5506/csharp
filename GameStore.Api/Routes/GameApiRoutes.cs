@@ -14,7 +14,7 @@ public static class GameApiRoutes{
     public static void MapGameApiRoutes(this WebApplication app)
     {
 
-        var group=app.MapGroup("/group");
+        var group=app.MapGroup("/games");
 
         group.MapGet("/", () => games);
         group.MapGet("/{id}", (int id) =>
