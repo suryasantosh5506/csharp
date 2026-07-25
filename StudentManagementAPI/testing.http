@@ -1,0 +1,27 @@
+Get http://localhost:5103/students/
+
+###
+
+Get http://localhost:5103/students/1
+
+###
+
+Get http://localhost:5103/students/6
+
+###
+
+Delete http://localhost:5103/students/8
+
+
+###
+
+Get http://localhost:5103/departments/
+
+###
+
+Get http://localhost:5103/departments/10
+
+
+###
+
+DELETE http://localhost:5103/departments/7

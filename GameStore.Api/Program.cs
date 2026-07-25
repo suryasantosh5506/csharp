@@ -11,5 +11,6 @@ var app=builder.Build();
 
 app.MigrateDb();
 app.MapGameApiRoutes();
+app.MapGenreApiRoutes();
 
 app.Run();
