@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\GameStore.Api\\GameStore.Api.csproj": {}
+    "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\GameStore.Api\\GameStore.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\GameStore.Api\\GameStore.Api.csproj": {
+    "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\GameStore.Api\\GameStore.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\GameStore.Api\\GameStore.Api.csproj",
+        "projectUniqueName": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\GameStore.Api\\GameStore.Api.csproj",
         "projectName": "GameStore.Api",
-        "projectPath": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\GameStore.Api\\GameStore.Api.csproj",
-        "packagesPath": "C:\\Users\\Ace-Santosh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\GameStore.Api\\obj\\",
+        "projectPath": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\GameStore.Api\\GameStore.Api.csproj",
+        "packagesPath": "C:\\Users\\Santosh\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\GameStore.Api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Ace-Santosh\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Santosh\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
