@@ -1,6 +1,7 @@
 using LibraryManagementAPI.Data;
 using LibraryManagementAPI.Dtos.Book;
 using LibraryManagementAPI.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagementAPI.Routes;
@@ -27,7 +28,7 @@ public static class BookApiRoutes
                                     .ToListAsync();
         });
 
-        group.MapGet("/{id}",async (int id,LibraryManagementContext dbContext) =>
+        group.MapGet("/{id:int}",async (int id,LibraryManagementContext dbContext) =>
         {
            var book=await dbContext.Books.Include(book => book.Author)
                                          .Include(book => book.Category)
@@ -44,6 +45,62 @@ public static class BookApiRoutes
                                 book.Category.Name
                     ));
         }).WithName("GetBookById");
+
+        group.MapGet("/{title}",async (string title,LibraryManagementContext dbContext) =>
+        {
+           var book=await dbContext.Books
+                                        .Include(x=>x.Author)
+                                        .Include(x=>x.Category)
+                                        .FirstOrDefaultAsync(x=>x.Title==title);
+
+            if(book is null) return Results.NotFound("Book with Title Not Found");
+            return Results.Ok(new BookDetailsDto(
+                                book.Id,
+                                book.Title,
+                                book.Price,
+                                book.PublishedDate,
+                                book.Stock,
+                                book.Author.Name,
+                                book.Category.Name
+                    ));
+        });
+
+        group.MapGet("/author/{id}",async (int id,LibraryManagementContext dbContext) =>
+        {
+           return await dbContext.Books
+                          .Include(book=>book.Author)
+                          .Include(book=>book.Category)
+                          .Where(book=>book.AuthorId==id)
+                          .Select(book=>new BookDetailsDto(
+                            book.Id,
+                            book.Title,
+                            book.Price,
+                            book.PublishedDate,
+                            book.Stock,
+                            book.Author.Name,
+                            book.Category.Name
+                          ))
+                          .ToListAsync();
+        });
+
+        group.MapGet("/category/{id}",async (int id,LibraryManagementContext dbContext) =>
+        {
+           return await dbContext.Books
+                          .Include(book=>book.Author)
+                          .Include(book=>book.Category)
+                          .Where(book=>book.CategoryId==id)
+                          .Select(book=>new BookDetailsDto(
+                            book.Id,
+                            book.Title,
+                            book.Price,
+                            book.PublishedDate,
+                            book.Stock,
+                            book.Author.Name,
+                            book.Category.Name
+                          ))
+                          .ToListAsync();
+        });
+
 
         group.MapPost("/", async (CreateBookDto newBook, LibraryManagementContext dbContext) =>
         {
