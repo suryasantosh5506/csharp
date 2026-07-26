@@ -2,4 +2,5 @@
   <Project Path="GameStore.Api/GameStore.Api.csproj" />
   <Project Path="LibraryManagementAPI/LibraryManagementAPI.csproj" />
   <Project Path="Student Management API/Student Management API.csproj" />
+  <Project Path="VideoGameCharacterApi/VideoGameCharacterApi.csproj" />
 </Solution>
