@@ -1,0 +1,28 @@
+Get http://localhost:5079/Author
+
+###
+
+Get http://localhost:5079/Author/3
+
+###
+
+DELETE http://localhost:5079/Author/4
+
+###
+Get http://localhost:5079/Category
+
+###
+
+Get http://localhost:5079/Category/1
+
+###
+
+DELETE http://localhost:5079/Category/4
+
+###
+
+Get http://localhost:5079/Books/
+
+###
+
+Get http://localhost:5079/Books/1
