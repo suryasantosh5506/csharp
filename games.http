@@ -1,5 +1,0 @@
-GET http://localhost:5048/games
-
-###
-
-GET http://localhost:5048/games/10

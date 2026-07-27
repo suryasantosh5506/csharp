@@ -1,65 +1,92 @@
 namespace GameStore.Api.Routes;
+
+using GameStore.Api.Data;
 using GameStore.Api.dtos;
+using GameStore.Api.Models;
+using Microsoft.EntityFrameworkCore;
+
 public static class GameApiRoutes{
-    private static List<GameDto> games = new()
-    {
-
-        new(1,"Name1","Genre1",19.99m,new DateOnly(1992,7,15)),
-        new(2,"Name2","Genre2",20.99m,new DateOnly(1992,7,16)),
-        new(3,"Name3","Genre3",21.99m,new DateOnly(1992,7,17)),
-        new(4,"Name4","Genre4",22.99m,new DateOnly(1992,7,18)),
-        new(5,"Name5","Genre5",23.99m,new DateOnly(1992,7,19)),
-    };
-
     public static void MapGameApiRoutes(this WebApplication app)
     {
 
         var group=app.MapGroup("/games");
 
-        group.MapGet("/", () => games);
-        group.MapGet("/{id}", (int id) =>
+        group.MapGet("/", async (GameStoreContext dbContext) =>
         {
-            var game=games.FirstOrDefault(game=>game.Id==id);
-            return (game is null)?Results.NotFound():Results.Ok(game);
+            return await dbContext.Games
+                .Include(game=>game.Genre)
+                .Select(game=>new GameDto(
+                    game.Id,
+                    game.Name,
+                    game.Genre!.Name,
+                    game.Price,
+                    game.ReleaseDate
+                ))
+                .ToListAsync();
+            
+        });
+        group.MapGet("/{id}", async (int id,GameStoreContext dbContext) =>
+        {
+            var game=await dbContext.Games.FindAsync(id);
+            if(game is null) return Results.NotFound();
+            GameDetailsDto gameDetailsDto=new(
+                game.Id,
+                game.Name,
+                game.GenreId,
+                game.Price,
+                game.ReleaseDate
+            );
+            return Results.Ok(gameDetailsDto);
         }).WithName("GetGame");
 
-        group.MapPost("/",(CreateGameDto newGame) =>
+        group.MapPost("/",async (CreateGameDto newGame,GameStoreContext dbContext) =>
         {
-            GameDto game=new(
-                games.Max(x=>x.Id),
-                newGame.Name,
-                newGame.Genre,
-                newGame.Price,
-                newGame.ReleaseDate
-            );
-            
-            games.Add(game);
-            return Results.CreatedAtRoute("GetGame",new {id=game.Id},game);
-        });
 
-        group.MapPut("/{id}",(int id,UpdateGameDto updatedGame) =>
-        {
-            int index=games.FindIndex(x=>x.Id==id);
-
-            if (index == -1)
+            Game game = new()
             {
-                return Results.NotFound();
-            }
+                Name=newGame.Name,
+                GenreId=newGame.GenreId,
+                Price=newGame.Price,
+                ReleaseDate=newGame.ReleaseDate
+            };
+            
+            dbContext.Games.Add(game);
+            await dbContext.SaveChangesAsync();
 
-            games[index]=new GameDto(
-                id,
-                updatedGame.Name,
-                updatedGame.Genre,
-                updatedGame.Price,
-                updatedGame.ReleaseDate
+            GameDetailsDto createdGame = new(game.Id,
+                game.Name,
+                game.GenreId,
+                game.Price,
+                game.ReleaseDate
             );
-            return Results.NoContent();
+            return Results.CreatedAtRoute("GetGame",new {id=createdGame.Id},createdGame);
+        });
+
+        group.MapPut("/{id}",async (int id,UpdateGameDto updatedGame,GameStoreContext dbContext) =>
+        {
+            Game existingGame=await dbContext.Games.FindAsync(id);
+            if(existingGame is null) return Results.NotFound();
+            existingGame.Name=updatedGame.Name;
+            existingGame.GenreId=updatedGame.GenreId;
+            existingGame.Price=updatedGame.Price;
+            existingGame.ReleaseDate=updatedGame.ReleaseDate;
+
+            await dbContext.SaveChangesAsync();
+
+           GameDetailsDto game = new(
+                existingGame.Id,
+                existingGame.Name,
+                existingGame.GenreId,
+                existingGame.Price,
+                existingGame.ReleaseDate
+            );
+            return Results.Ok(game);
         });
 
 
-        group.MapDelete("/{id}",(int id) =>
+        group.MapDelete("/{id}",async (int id,GameStoreContext dbContext) =>
         {
-            games.RemoveAll(x=>x.Id==id);
+            await dbContext.Games.Where(x=>x.Id==id).ExecuteDeleteAsync();
             return Results.NoContent();
         });
 

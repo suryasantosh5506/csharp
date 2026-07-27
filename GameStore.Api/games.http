@@ -1,0 +1,13 @@
+GET http://localhost:5048/games
+
+###
+
+GET http://localhost:5048/games/1
+
+###
+
+DELETE http://localhost:5048/games/10
+
+###
+
+Get http://localhost:5048/genre
