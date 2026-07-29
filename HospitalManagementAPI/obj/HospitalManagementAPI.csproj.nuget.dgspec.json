@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\HospitalManagementAPI.csproj": {}
+    "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\HospitalManagementAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\HospitalManagementAPI.csproj": {
+    "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\HospitalManagementAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\HospitalManagementAPI.csproj",
+        "projectUniqueName": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\HospitalManagementAPI.csproj",
         "projectName": "HospitalManagementAPI",
-        "projectPath": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\HospitalManagementAPI.csproj",
-        "packagesPath": "C:\\Users\\Santosh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\obj\\",
+        "projectPath": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\HospitalManagementAPI.csproj",
+        "packagesPath": "C:\\Users\\Ace-Santosh\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Santosh\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Ace-Santosh\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -49,6 +49,10 @@
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.0.10, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[10.0.10, )"
             },

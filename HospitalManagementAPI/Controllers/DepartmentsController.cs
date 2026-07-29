@@ -42,4 +42,32 @@ public class DepartmentsController(HospitalContext context) : BaseApiController
         await context.SaveChangesAsync();
         return CreatedAtRoute("GetDepartmentById",new {id=department.Id},department.ToDto());
     }
+
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<DepartmentDetailsDto>> UpdateDepartmentAsync(int id,UpdateDepartmentDto updateDepartmentDto)
+    {
+        var department=await context.Departments.FindAsync(id);
+
+        if(department is null) return NotFound();
+
+        if(await context.Departments.AnyAsync(x => x.Name.ToLower() == updateDepartmentDto.Name.Trim().ToLower() && x.Id!=id))
+        {
+            return Conflict();
+        }
+        
+        department.Name=updateDepartmentDto.Name.Trim();
+        department.Description=updateDepartmentDto.Description.Trim();
+        await context.SaveChangesAsync();
+        return Ok(department.ToDto());
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult> DeleteDepartmentAsync(int id)
+    {
+        var department=await context.Departments.FindAsync(id);
+        if(department is null) return NotFound();
+        context.Departments.Remove(department);
+        await context.SaveChangesAsync();
+        return NoContent();
+    }
 }
