@@ -6,9 +6,6 @@ public record CreateAppointmentDto(
     [Range(1, int.MaxValue)]
     int DoctorId,
 
-    [Range(1, int.MaxValue)]
-    int PatientId,
-
     [Required]
     DateOnly AppointmentDate,
 

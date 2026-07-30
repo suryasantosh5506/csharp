@@ -9,4 +9,5 @@ public class HospitalContext(DbContextOptions<HospitalContext> options) : DbCont
     public DbSet<Appointment>Appointments=>Set<Appointment>();
     public DbSet<Doctor>Doctors=>Set<Doctor>();
     public DbSet<Patient>Patients=>Set<Patient>();
+    public DbSet<User> Users => Set<User>();
 }

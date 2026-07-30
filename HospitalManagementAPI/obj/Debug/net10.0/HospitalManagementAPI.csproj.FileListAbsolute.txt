@@ -338,3 +338,4 @@ C:\Users\Ace-Santosh\Desktop\Learning c#\c#\HospitalManagementAPI\obj\Debug\net1
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\HospitalManagementAPI\obj\Debug\net10.0\HospitalManagementAPI.pdb
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\HospitalManagementAPI\obj\Debug\net10.0\HospitalManagementAPI.genruntimeconfig.cache
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\HospitalManagementAPI\obj\Debug\net10.0\ref\HospitalManagementAPI.dll
+C:\Users\Ace-Santosh\Desktop\Learning c#\c#\HospitalManagementAPI\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

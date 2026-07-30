@@ -4,6 +4,9 @@ public class Doctor
 {
     public int Id { get; set; }
 
+    public int UserId { get; set; }
+    public User User { get; set; } = null!;
+
     public required string FirstName { get; set; }
 
     public required string LastName { get; set; }
