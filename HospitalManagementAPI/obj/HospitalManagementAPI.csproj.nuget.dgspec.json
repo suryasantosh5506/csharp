@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\HospitalManagementAPI.csproj": {}
+    "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\HospitalManagementAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\HospitalManagementAPI.csproj": {
+    "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\HospitalManagementAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\HospitalManagementAPI.csproj",
+        "projectUniqueName": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\HospitalManagementAPI.csproj",
         "projectName": "HospitalManagementAPI",
-        "projectPath": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\HospitalManagementAPI.csproj",
-        "packagesPath": "C:\\Users\\Ace-Santosh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Ace-Santosh\\Desktop\\Learning c#\\c#\\HospitalManagementAPI\\obj\\",
+        "projectPath": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\HospitalManagementAPI.csproj",
+        "packagesPath": "C:\\Users\\Santosh\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Santosh\\OneDrive\\Desktop\\c#\\csharp\\HospitalManagementAPI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Ace-Santosh\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Santosh\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
