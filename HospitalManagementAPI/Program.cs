@@ -1,8 +1,10 @@
 using System.Text;
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Entities;
+using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.Middlewares;
 using HospitalManagementAPI.Options;
+using HospitalManagementAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -13,6 +15,20 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtConfiguration>(builder.Configuration.GetSection("JwtConfiguration"));
+
+
+builder.Services.AddScoped<IDoctorService,DoctorService>();
+builder.Services.AddScoped<IPatientService,PatientService>();
+builder.Services.AddScoped<IAdminAppointmentService,AdminAppointmentService>();
+builder.Services.AddScoped<IAdminDoctorApplicationService,AdminDoctorApplicationService>();
+builder.Services.AddScoped<IAppointmentService,AppointmentService>();
+builder.Services.AddScoped<IAuthService,AuthService>();
+builder.Services.AddScoped<IDepartmentService,DepartmentService>();
+builder.Services.AddScoped<IDoctorApplicationService,DoctorApplicationService>();
+builder.Services.AddScoped<IDoctorAppointmentService,DoctorAppointmentService>();
+builder.Services.AddScoped<IPatientProfileService,PatientProfileService>();
+
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

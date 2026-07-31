@@ -1,7 +1,6 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.DoctorApplication;
-using HospitalManagementAPI.Entities;
-using HospitalManagementAPI.Extensions;
+using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,87 +9,66 @@ using Microsoft.EntityFrameworkCore;
 namespace HospitalManagementAPI.Controllers;
 
 [Authorize(Roles ="Admin")]
-public class AdminDoctorApplicationController(HospitalContext context) : BaseApiController
+public class AdminDoctorApplicationController(
+    HospitalContext context,
+    IAdminDoctorApplicationService adminDoctorApplicationService) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<PagedList<DoctorApplicationDetailsDto>>> GetAllApplicationsAsync([FromQuery]PaginationParams paginationParams)
     {
-        var query=context.DoctorApplications.Include(x=>x.User).Select(x=>x.ToDto());
-        var applications=await PagedList<DoctorApplicationDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
+        var applications=await adminDoctorApplicationService.GetAllApplicationsAsync(paginationParams);
+
         return Ok(applications);
     }
 
     [HttpGet("pending")]
     public async Task<ActionResult<PagedList<DoctorApplicationDetailsDto>>> GetAllPendingApplicationsAsync([FromQuery]PaginationParams paginationParams)
     {
-        var query=context.DoctorApplications.Where(x=>x.Status=="pending").Include(x=>x.User).Select(x=>x.ToDto());
-        var applications=await PagedList<DoctorApplicationDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
+        var applications=await adminDoctorApplicationService.GetAllPendingApplicationsAsync(paginationParams);
+
         return Ok(applications);
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<DoctorApplicationDetailsDto>> GetApplicationByIdAsync(int id)
     {
-        var application = await context.DoctorApplications.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
-        if (application is null) return NotFound();
-        return Ok(application.ToDto());
+        var application=await adminDoctorApplicationService.GetApplicationByIdAsync(id);
+
+        if(application is null)
+            return NotFound();
+
+        return Ok(application);
     }
 
     [HttpPatch("{id:int}/reject")]
     public async Task<ActionResult<DoctorApplicationDetailsDto>> RejectApplicationAsync(int id)
     {
-        List<string> validStatus = new() { "pending" };
+        var application=await adminDoctorApplicationService.GetApplicationByIdAsync(id);
 
-        return await updateStatus(id, validStatus, "rejected");
+        if(application is null)
+            return NotFound();
+
+        if(application.Status!="Pending")
+            return BadRequest("Application has already been processed.");
+
+        var updatedApplication=await adminDoctorApplicationService.RejectApplicationAsync(id);
+
+        return Ok(updatedApplication);
     }
 
     [HttpPatch("{id:int}/approve")]
     public async Task<ActionResult<DoctorApplicationDetailsDto>> ApproveApplicationAsync(int id)
     {
-        var application = await context.DoctorApplications.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
+        var application=await adminDoctorApplicationService.GetApplicationByIdAsync(id);
 
-        if (application is null) return NotFound();
+        if(application is null)
+            return NotFound();
 
-        if (application.Status != "pending") return BadRequest("Application has already been processed.");
+        if(application.Status!="Pending")
+            return BadRequest("Application has already been processed.");
 
-        var patient = await context.Patients.FirstOrDefaultAsync(x => x.UserId == application.UserId);
+        var updatedApplication=await adminDoctorApplicationService.ApproveApplicationAsync(id);
 
-        if (patient is null) return NotFound("Patient profile not found.");
-
-        var doctor = new Doctor
-        {
-            UserId = application.UserId,
-            FirstName = patient.FirstName,
-            LastName = patient.LastName,
-            Email = patient.Email,
-            PhoneNumber = patient.PhoneNumber,
-            Qualification = application.Qualification,
-            Specialization = application.Specialization,
-            ExperienceYears = application.YearsOfExperience,
-            LicenseNumber = application.LicenseNumber,
-            HospitalName = application.HospitalName,
-            Bio = application.Bio,
-            DepartmentId = application.DepartmentId,
-            ConsultationFee = application.ConsultationFee
-        };
-
-        context.Doctors.Add(doctor);
-        application.User.Role = "Doctor";
-        application.Status = "approved";
-        await context.SaveChangesAsync();
-        return Ok(application.ToDto());
-    }
-
-    private async Task<ActionResult<DoctorApplicationDetailsDto>> updateStatus(int applicationId,List<string>ValidStatus,string newStatus)
-    {
-        var application=await context.DoctorApplications.Include(x=>x.User).FirstOrDefaultAsync(x=>x.Id==applicationId);
-        if(application is null) return NotFound();
-        if (!ValidStatus.Any(x=>x==application.Status))
-        {
-            return BadRequest();
-        }
-        application.Status=newStatus;
-        await context.SaveChangesAsync();
-        return Ok(application.ToDto());
+        return Ok(updatedApplication);
     }
 }

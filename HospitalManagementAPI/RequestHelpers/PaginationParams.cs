@@ -2,16 +2,17 @@ namespace HospitalManagementAPI.RequestHelpers;
 
 public class PaginationParams
 {
-    private int maxLimit=15;
+    private const int maxLimit = 15;
+    private int _pageSize = 5;
+
     public int pageSize
     {
-        get=>pageSize;
+        get => _pageSize;
         set
         {
-            pageSize=(value>maxLimit)?maxLimit:value;    
+            _pageSize = (value > maxLimit) ? maxLimit : value;
         }
     }
 
-    public int pageNumber {get;set;}=1;
-
+    public int pageNumber { get; set; } = 1;
 }

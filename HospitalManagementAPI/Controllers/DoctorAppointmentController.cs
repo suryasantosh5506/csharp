@@ -1,9 +1,8 @@
-using System.Runtime.InteropServices;
 using System.Security.Claims;
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
 using HospitalManagementAPI.Entities;
-using HospitalManagementAPI.Extensions;
+using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +11,14 @@ using Microsoft.EntityFrameworkCore;
 namespace HospitalManagementAPI.Controllers;
 
 [Authorize(Roles = "Doctor")]
-public class DoctorAppointmentController(HospitalContext context) : BaseApiController
+public class DoctorAppointmentController(
+    HospitalContext context,
+    IDoctorAppointmentService doctorAppointmentService) : BaseApiController
 {
     private async Task<Doctor?> GetCurrentDoctorAsync()
     {
         var userId=int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         return await context.Doctors.FirstOrDefaultAsync(x=>x.UserId==userId);
     }
 
@@ -24,9 +26,12 @@ public class DoctorAppointmentController(HospitalContext context) : BaseApiContr
     public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery]PaginationParams paginationParams)
     {
         var doctor=await GetCurrentDoctorAsync();
-        if(doctor is null) return Unauthorized();
-        var query=context.Appointments.Include(x=>x.Doctor).Include(x=>x.Patient).Where(x=>x.DoctorId==doctor.Id).Select(x=>x.ToDto());
-        var appointments=await PagedList<AppointmentDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
+
+        if(doctor is null)
+            return Unauthorized();
+
+        var appointments=await doctorAppointmentService.GetAllAppointmentsAsync(doctor.Id,paginationParams);
+
         return Ok(appointments);
     }
 
@@ -34,43 +39,63 @@ public class DoctorAppointmentController(HospitalContext context) : BaseApiContr
     public async Task<ActionResult<AppointmentDetailsDto>> GetAppointmentByIdAsync(int id)
     {
         var doctor=await GetCurrentDoctorAsync();
-        if(doctor is null) return Unauthorized();
-        var appointment=await context.Appointments.Include(x=>x.Patient).Include(x=>x.Doctor).FirstOrDefaultAsync(x=>x.Id==id && x.DoctorId==doctor.Id);
-        if(appointment is null) return NotFound();
-        return Ok(appointment.ToDto());
+
+        if(doctor is null)
+            return Unauthorized();
+
+        var appointment=await doctorAppointmentService.GetAppointmentByIdAsync(id,doctor.Id);
+
+        if(appointment is null)
+            return NotFound();
+
+        return Ok(appointment);
     }
 
     [HttpPatch("{id:int}/approve")]
     public async Task<ActionResult<AppointmentDetailsDto>> ApproveAppointmentAsync(int id)
     {
-        List<string>ValidStatus=new(){"pending"};
-        return await UpdateAppointmentStatusAsync(id,ValidStatus,"approve");
+        var doctor=await GetCurrentDoctorAsync();
+
+        if(doctor is null)
+            return Unauthorized();
+
+        var appointment=await doctorAppointmentService.ApproveAppointmentAsync(id,doctor.Id);
+
+        if(appointment is null)
+            return BadRequest();
+
+        return Ok(appointment);
     }
 
     [HttpPatch("{id:int}/reject")]
     public async Task<ActionResult<AppointmentDetailsDto>> RejectAppointmentAsync(int id)
     {
-        List<string>ValidStatus=new(){"pending"};
-        return await UpdateAppointmentStatusAsync(id,ValidStatus,"reject");
+        var doctor=await GetCurrentDoctorAsync();
+
+        if(doctor is null)
+            return Unauthorized();
+
+        var appointment=await doctorAppointmentService.RejectAppointmentAsync(id,doctor.Id);
+
+        if(appointment is null)
+            return BadRequest();
+
+        return Ok(appointment);
     }
 
     [HttpPatch("{id:int}/complete")]
     public async Task<ActionResult<AppointmentDetailsDto>> CompleteAppointmentAsync(int id)
     {
-        List<string>ValidStatus=new(){"approved"};
-        return await UpdateAppointmentStatusAsync(id,ValidStatus,"completed");
-    }
-
-    private async Task<ActionResult<AppointmentDetailsDto>> UpdateAppointmentStatusAsync(int appointmentId,List<string> validStatus,string newStatus)
-    {
         var doctor=await GetCurrentDoctorAsync();
-        if(doctor is null) return Unauthorized();
-        var appointment=await context.Appointments.Include(x=>x.Doctor).Include(x=>x.Patient)
-                                                    .FirstOrDefaultAsync(x=>x.Id==appointmentId && x.DoctorId==doctor.Id);
-        if(appointment is null) return NotFound();
-        if(!validStatus.Any(x=>x==appointment.Status)) return BadRequest();
-        appointment.Status=newStatus;
-        await context.SaveChangesAsync();
-        return Ok(appointment.ToDto());
+
+        if(doctor is null)
+            return Unauthorized();
+
+        var appointment=await doctorAppointmentService.CompleteAppointmentAsync(id,doctor.Id);
+
+        if(appointment is null)
+            return BadRequest();
+
+        return Ok(appointment);
     }
 }

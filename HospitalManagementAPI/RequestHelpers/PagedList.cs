@@ -1,3 +1,4 @@
+using HospitalManagementAPI.Dtos.Doctor;
 using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagementAPI.RequestHelpers;

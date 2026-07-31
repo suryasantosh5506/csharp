@@ -2,7 +2,7 @@ using System.Security.Claims;
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
 using HospitalManagementAPI.Entities;
-using HospitalManagementAPI.Extensions;
+using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HospitalManagementAPI.Controllers;
 
 [Authorize(Roles = "Patient")]
-public class AppointmentController(HospitalContext context) : BaseApiController
+public class AppointmentController(HospitalContext context,IAppointmentService appointmentService) : BaseApiController
 {
     private async Task<Patient?> GetCurrentPatientAsync()
     {
@@ -25,13 +25,7 @@ public class AppointmentController(HospitalContext context) : BaseApiController
         var patient=await GetCurrentPatientAsync();
         if(patient is null) return Unauthorized("Patient profile not found.");
 
-        var query=context.Appointments
-            .Where(x=>x.PatientId==patient.Id)
-            .Include(x=>x.Doctor)
-            .Include(x=>x.Patient)
-            .Select(x=>x.ToDto());
-
-        var appointments=await PagedList<AppointmentDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
+        var appointments=await appointmentService.GetAllAppointmentsAsync(patient.Id,paginationParams);
 
         return Ok(appointments);
     }
@@ -42,14 +36,11 @@ public class AppointmentController(HospitalContext context) : BaseApiController
         var patient=await GetCurrentPatientAsync();
         if(patient is null) return Unauthorized("Patient profile not found.");
 
-        var appointment=await context.Appointments
-            .Include(x=>x.Doctor)
-            .Include(x=>x.Patient)
-            .FirstOrDefaultAsync(x=>x.Id==id && x.PatientId==patient.Id);
+        var appointment=await appointmentService.GetAppointmentByIdAsync(id,patient.Id);
 
         if(appointment is null) return NotFound();
 
-        return Ok(appointment.ToDto());
+        return Ok(appointment);
     }
 
     [HttpPost]
@@ -80,26 +71,9 @@ public class AppointmentController(HospitalContext context) : BaseApiController
         if(patientConflict)
             return Conflict("You already have another appointment at that time.");
 
-        Appointment appointment=new()
-        {
-            DoctorId=newAppointment.DoctorId,
-            PatientId=patient.Id,
-            AppointmentDate=newAppointment.AppointmentDate,
-            AppointmentTime=newAppointment.AppointmentTime,
-            Reason=newAppointment.Reason.Trim(),
-            Status="Pending",
-            CreatedAt=DateTime.UtcNow
-        };
+        var appointment=await appointmentService.CreateAppointmentAsync(patient.Id,newAppointment);
 
-        context.Appointments.Add(appointment);
-        await context.SaveChangesAsync();
-
-        appointment=await context.Appointments
-            .Include(x=>x.Doctor)
-            .Include(x=>x.Patient)
-            .FirstAsync(x=>x.Id==appointment.Id);
-
-        return CreatedAtRoute("GetAppointmentById",new{id=appointment.Id},appointment.ToDto());
+        return CreatedAtRoute("GetAppointmentById",new{id=appointment.Id},appointment);
     }
 
     [HttpPut("{id:int}")]
@@ -108,18 +82,16 @@ public class AppointmentController(HospitalContext context) : BaseApiController
         var patient=await GetCurrentPatientAsync();
         if(patient is null) return Unauthorized("Patient profile not found.");
 
-        var appointment=await context.Appointments
-            .Include(x=>x.Doctor)
-            .Include(x=>x.Patient)
-            .FirstOrDefaultAsync(x=>x.Id==id && x.PatientId==patient.Id);
-
-        if(appointment is null) return NotFound();
-
         if(updateAppointmentDto.AppointmentDate<DateOnly.FromDateTime(DateTime.Today))
             return BadRequest("Appointment date cannot be in the past.");
 
+        var existingAppointment=await appointmentService.GetAppointmentByIdAsync(id,patient.Id);
+
+        if(existingAppointment is null)
+            return NotFound();
+
         bool doctorConflict=await context.Appointments.AnyAsync(x=>
-            x.DoctorId==appointment.DoctorId &&
+            x.DoctorId==existingAppointment.DoctorId &&
             x.AppointmentDate==updateAppointmentDto.AppointmentDate &&
             x.AppointmentTime==updateAppointmentDto.AppointmentTime &&
             x.Id!=id);
@@ -136,13 +108,21 @@ public class AppointmentController(HospitalContext context) : BaseApiController
         if(patientConflict)
             return Conflict("You already have another appointment at that time.");
 
-        appointment.AppointmentDate=updateAppointmentDto.AppointmentDate;
-        appointment.AppointmentTime=updateAppointmentDto.AppointmentTime;
-        appointment.Reason=updateAppointmentDto.Reason.Trim();
-        appointment.Status=updateAppointmentDto.Status.Trim();
+        var appointment=await appointmentService.UpdateAppointmentAsync(id,patient.Id,updateAppointmentDto);
 
-        await context.SaveChangesAsync();
+        return Ok(appointment);
+    }
 
-        return Ok(appointment.ToDto());
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult> DeleteAppointmentAsync(int id)
+    {
+        var patient=await GetCurrentPatientAsync();
+        if(patient is null) return Unauthorized("Patient profile not found.");
+
+        var deleted=await appointmentService.DeleteAppointmentAsync(id,patient.Id);
+
+        if(!deleted) return NotFound();
+
+        return NoContent();
     }
 }

@@ -1,7 +1,6 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Department;
-using HospitalManagementAPI.Entities;
-using HospitalManagementAPI.Extensions;
+using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,65 +9,64 @@ using Microsoft.EntityFrameworkCore;
 namespace HospitalManagementAPI.Controllers;
 
 [Authorize(Roles = "Admin")]
-public class DepartmentsController(HospitalContext context) : BaseApiController
+public class DepartmentsController(HospitalContext context,IDepartmentService departmentService) : BaseApiController
 {
     [HttpGet]
     public async Task<ActionResult<PagedList<DepartmentDetailsDto>>> GetAllDepartmentsAsync([FromQuery]PaginationParams paginationParams)
     {
-        var query = context.Departments.Select(x => x.ToDto());
-        var departments=await PagedList<DepartmentDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
+        var departments=await departmentService.GetAllDepartmentsAsync(paginationParams);
+
         return Ok(departments);
     }
 
     [HttpGet("{id}",Name ="GetDepartmentById")]
     public async Task<ActionResult<DepartmentDetailsDto>> GetDepartmentByIdAsync(int id)
     {
-        var department=await context.Departments.FindAsync(id);
+        var department=await departmentService.GetDepartmentByIdAsync(id);
+
         if(department is null) return NotFound();
-        return Ok(department.ToDto());
+
+        return Ok(department);
     }
 
     [HttpPost]
-
     public async Task<ActionResult<DepartmentDetailsDto>> CreateDepartmentAsync(CreateDepartmentDto newDepartment)
     {
-        if(await context.Departments.AnyAsync(d =>
-                d.Name.ToLower() == newDepartment.Name.Trim().ToLower())) return Conflict();
-        var department=new Department()
+        if(await context.Departments.AnyAsync(d=>
+            d.Name.ToLower()==newDepartment.Name.Trim().ToLower()))
         {
-            Name=newDepartment.Name,
-            Description=newDepartment.Description
-        };
-        context.Departments.Add(department);
-        await context.SaveChangesAsync();
-        return CreatedAtRoute("GetDepartmentById",new {id=department.Id},department.ToDto());
+            return Conflict();
+        }
+
+        var department=await departmentService.CreateDepartmentAsync(newDepartment);
+
+        return CreatedAtRoute("GetDepartmentById",new{id=department.Id},department);
     }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<DepartmentDetailsDto>> UpdateDepartmentAsync(int id,UpdateDepartmentDto updateDepartmentDto)
     {
-        var department=await context.Departments.FindAsync(id);
-
-        if(department is null) return NotFound();
-
-        if(await context.Departments.AnyAsync(x => x.Name.ToLower() == updateDepartmentDto.Name.Trim().ToLower() && x.Id!=id))
+        if(await context.Departments.AnyAsync(x=>
+            x.Name.ToLower()==updateDepartmentDto.Name.Trim().ToLower() &&
+            x.Id!=id))
         {
             return Conflict();
         }
-        
-        department.Name=updateDepartmentDto.Name.Trim();
-        department.Description=updateDepartmentDto.Description.Trim();
-        await context.SaveChangesAsync();
-        return Ok(department.ToDto());
+
+        var department=await departmentService.UpdateDepartmentAsync(id,updateDepartmentDto);
+
+        if(department is null) return NotFound();
+
+        return Ok(department);
     }
 
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteDepartmentAsync(int id)
     {
-        var department=await context.Departments.FindAsync(id);
-        if(department is null) return NotFound();
-        context.Departments.Remove(department);
-        await context.SaveChangesAsync();
+        var deleted=await departmentService.DeleteDepartmentAsync(id);
+
+        if(!deleted) return NotFound();
+
         return NoContent();
     }
 }
