@@ -4,6 +4,7 @@ using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
 using HospitalManagementAPI.Entities;
 using HospitalManagementAPI.Extensions;
+using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,11 +21,12 @@ public class DoctorAppointmentController(HospitalContext context) : BaseApiContr
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<AppointmentDetailsDto>>> GetAllAppointmentsAsync()
+    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery]PaginationParams paginationParams)
     {
         var doctor=await GetCurrentDoctorAsync();
         if(doctor is null) return Unauthorized();
-        var appointments=await context.Appointments.Include(x=>x.Doctor).Include(x=>x.Patient).Where(x=>x.DoctorId==doctor.Id).Select(x=>x.ToDto()).ToListAsync();
+        var query=context.Appointments.Include(x=>x.Doctor).Include(x=>x.Patient).Where(x=>x.DoctorId==doctor.Id).Select(x=>x.ToDto());
+        var appointments=await PagedList<AppointmentDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
         return Ok(appointments);
     }
 

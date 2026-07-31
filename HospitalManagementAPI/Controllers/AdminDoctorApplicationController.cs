@@ -2,6 +2,7 @@ using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.DoctorApplication;
 using HospitalManagementAPI.Entities;
 using HospitalManagementAPI.Extensions;
+using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,16 +13,18 @@ namespace HospitalManagementAPI.Controllers;
 public class AdminDoctorApplicationController(HospitalContext context) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<List<DoctorApplicationDetailsDto>>> GetAllApplicationsAsync()
+    public async Task<ActionResult<PagedList<DoctorApplicationDetailsDto>>> GetAllApplicationsAsync([FromQuery]PaginationParams paginationParams)
     {
-        var applications=await context.DoctorApplications.Include(x=>x.User).Select(x=>x.ToDto()).ToListAsync();
+        var query=context.DoctorApplications.Include(x=>x.User).Select(x=>x.ToDto());
+        var applications=await PagedList<DoctorApplicationDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
         return Ok(applications);
     }
 
     [HttpGet("pending")]
-    public async Task<ActionResult<List<DoctorApplicationDetailsDto>>> GetAllPendingApplicationsAsync()
+    public async Task<ActionResult<PagedList<DoctorApplicationDetailsDto>>> GetAllPendingApplicationsAsync([FromQuery]PaginationParams paginationParams)
     {
-        var applications=await context.DoctorApplications.Where(x=>x.Status=="pending").Include(x=>x.User).Select(x=>x.ToDto()).ToListAsync();
+        var query=context.DoctorApplications.Where(x=>x.Status=="pending").Include(x=>x.User).Select(x=>x.ToDto());
+        var applications=await PagedList<DoctorApplicationDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
         return Ok(applications);
     }
 

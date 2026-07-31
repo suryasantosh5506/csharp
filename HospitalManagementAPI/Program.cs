@@ -1,6 +1,7 @@
 using System.Text;
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Entities;
+using HospitalManagementAPI.Middlewares;
 using HospitalManagementAPI.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -72,7 +73,7 @@ builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 

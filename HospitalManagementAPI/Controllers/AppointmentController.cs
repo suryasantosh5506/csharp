@@ -3,6 +3,7 @@ using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
 using HospitalManagementAPI.Entities;
 using HospitalManagementAPI.Extensions;
+using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,17 +20,18 @@ public class AppointmentController(HospitalContext context) : BaseApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<AppointmentDetailsDto>>> GetAllAppointmentsAsync()
+    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery]PaginationParams paginationParams)
     {
         var patient=await GetCurrentPatientAsync();
         if(patient is null) return Unauthorized("Patient profile not found.");
 
-        var appointments=await context.Appointments
+        var query=context.Appointments
             .Where(x=>x.PatientId==patient.Id)
             .Include(x=>x.Doctor)
             .Include(x=>x.Patient)
-            .Select(x=>x.ToDto())
-            .ToListAsync();
+            .Select(x=>x.ToDto());
+
+        var appointments=await PagedList<AppointmentDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
 
         return Ok(appointments);
     }

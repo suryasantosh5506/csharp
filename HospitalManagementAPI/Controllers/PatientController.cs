@@ -2,17 +2,21 @@ using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Patient;
 using HospitalManagementAPI.Entities;
 using HospitalManagementAPI.Extensions;
+using HospitalManagementAPI.RequestHelpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagementAPI.Controllers;
 
+[Authorize(Roles ="Admin")]
 public class PatientController(HospitalContext context) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<List<PatientDetailsDto>>> GetAllPatientsAsync()
+    public async Task<ActionResult<PagedList<PatientDetailsDto>>> GetAllPatientsAsync([FromQuery]PaginationParams paginationParams)
     {
-        var patients=await context.Patients.Select(x=>x.ToDto()).ToListAsync();
+        var query=context.Patients.Select(x=>x.ToDto());
+        var patients=await PagedList<PatientDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
         return Ok(patients);
     }
 
