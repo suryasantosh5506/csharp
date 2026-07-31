@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
@@ -34,6 +35,40 @@ public class DoctorAppointmentController(HospitalContext context) : BaseApiContr
         if(doctor is null) return Unauthorized();
         var appointment=await context.Appointments.Include(x=>x.Patient).Include(x=>x.Doctor).FirstOrDefaultAsync(x=>x.Id==id && x.DoctorId==doctor.Id);
         if(appointment is null) return NotFound();
+        return Ok(appointment.ToDto());
+    }
+
+    [HttpPatch("{id:int}/approve")]
+    public async Task<ActionResult<AppointmentDetailsDto>> ApproveAppointmentAsync(int id)
+    {
+        List<string>ValidStatus=new(){"pending"};
+        return await UpdateAppointmentStatusAsync(id,ValidStatus,"approve");
+    }
+
+    [HttpPatch("{id:int}/reject")]
+    public async Task<ActionResult<AppointmentDetailsDto>> RejectAppointmentAsync(int id)
+    {
+        List<string>ValidStatus=new(){"pending"};
+        return await UpdateAppointmentStatusAsync(id,ValidStatus,"reject");
+    }
+
+    [HttpPatch("{id:int}/complete")]
+    public async Task<ActionResult<AppointmentDetailsDto>> CompleteAppointmentAsync(int id)
+    {
+        List<string>ValidStatus=new(){"approved"};
+        return await UpdateAppointmentStatusAsync(id,ValidStatus,"completed");
+    }
+
+    private async Task<ActionResult<AppointmentDetailsDto>> UpdateAppointmentStatusAsync(int appointmentId,List<string> validStatus,string newStatus)
+    {
+        var doctor=await GetCurrentDoctorAsync();
+        if(doctor is null) return Unauthorized();
+        var appointment=await context.Appointments.Include(x=>x.Doctor).Include(x=>x.Patient)
+                                                    .FirstOrDefaultAsync(x=>x.Id==appointmentId && x.DoctorId==doctor.Id);
+        if(appointment is null) return NotFound();
+        if(!validStatus.Any(x=>x==appointment.Status)) return BadRequest();
+        appointment.Status=newStatus;
+        await context.SaveChangesAsync();
         return Ok(appointment.ToDto());
     }
 }
