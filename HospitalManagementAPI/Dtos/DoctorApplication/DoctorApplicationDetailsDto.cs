@@ -1,3 +1,5 @@
+namespace HospitalManagementAPI.Dtos.DoctorApplication;
+
 public record class DoctorApplicationDetailsDto
 (
     int Id,

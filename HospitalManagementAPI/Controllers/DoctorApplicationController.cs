@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HospitalManagementAPI.Data;
+using HospitalManagementAPI.Dtos.DoctorApplication;
 using HospitalManagementAPI.Entities;
 using HospitalManagementAPI.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -17,14 +18,25 @@ public class DoctorApplicationController(HospitalContext context): BaseApiContro
         return await context.Patients.FirstOrDefaultAsync(x=>x.UserId==userId);
     }
 
+    [HttpGet]
+    public async Task<ActionResult<DoctorApplicationDetailsDto>> GetMyApplication()
+    {
+        var patient=await GetCurrentPatientAsync();
+        if(patient is null) return Unauthorized();
+        var application=await context.DoctorApplications.Include(x=>x.User).FirstOrDefaultAsync(x=>x.UserId==patient.UserId);
+        if(application is null) return NotFound("You have not applied for doctor");
+        return Ok(application.ToDto());
+    }
+
+
     [HttpPost]
     public async Task<ActionResult<DoctorApplicationDetailsDto>> ApplyDoctorAsync(CreateDoctorApplicationDto applicationDto)
     {
         var patient=await GetCurrentPatientAsync();
         if(patient is null) return Unauthorized();
-        if(await context.DoctorApplications.AnyAsync(x=>x.UserId==patient.UserId)) return BadRequest("Application already pending.");
         var isDoctor = await context.Doctors.AnyAsync(x => x.UserId == patient.UserId);
         if(isDoctor) return BadRequest("You are already a doctor.");   
+        if(await context.DoctorApplications.AnyAsync(x=>x.UserId==patient.UserId && x.Status=="pending")) return BadRequest("Application already pending.");
         var application = new DoctorApplication
         {
             UserId = patient.UserId,
@@ -39,6 +51,6 @@ public class DoctorApplicationController(HospitalContext context): BaseApiContro
         };
         context.DoctorApplications.Add(application);
         await context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetMyApplication),new { id = application.Id },application.ToDto());
+        return CreatedAtRoute(nameof(GetMyApplication),application.ToDto());
     }
 }

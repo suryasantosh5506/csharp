@@ -3,6 +3,7 @@ using System;
 using HospitalManagementAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HospitalManagementAPI.Data.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20260731074802_UpdateDoctorEntity")]
+    partial class UpdateDoctorEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
@@ -149,12 +152,6 @@ namespace HospitalManagementAPI.Data.Migrations
                     b.Property<string>("Bio")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<decimal>("ConsultationFee")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("DepartmentId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("HospitalName")
                         .IsRequired()

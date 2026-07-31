@@ -29,5 +29,9 @@ public class Doctor
 
     public Department Department { get; set; } = null!;
 
+    public string HospitalName { get; set; } = string.Empty;
+
+    public string Bio { get; set; } = string.Empty;
+
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 }

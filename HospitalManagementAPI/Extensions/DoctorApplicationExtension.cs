@@ -1,3 +1,4 @@
+using HospitalManagementAPI.Dtos.DoctorApplication;
 using HospitalManagementAPI.Entities;
 
 namespace HospitalManagementAPI.Extensions;
