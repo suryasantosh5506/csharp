@@ -1,5 +1,6 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Extensions;
 using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
@@ -44,9 +45,9 @@ public class DoctorAppointmentService(HospitalContext context) : IDoctorAppointm
 
         if(appointment is null) return null;
 
-        if(appointment.Status!="pending") return null;
+        if(appointment.Status!=AppointmentStatus.Pending) return null;
 
-        appointment.Status="approved";
+        appointment.Status=AppointmentStatus.Approved;
 
         await context.SaveChangesAsync();
 
@@ -62,9 +63,9 @@ public class DoctorAppointmentService(HospitalContext context) : IDoctorAppointm
 
         if(appointment is null) return null;
 
-        if(appointment.Status!="pending") return null;
+        if(appointment.Status!=AppointmentStatus.Pending) return null;
 
-        appointment.Status="reject";
+        appointment.Status=AppointmentStatus.Rejected;
 
         await context.SaveChangesAsync();
 
@@ -80,9 +81,9 @@ public class DoctorAppointmentService(HospitalContext context) : IDoctorAppointm
 
         if(appointment is null) return null;
 
-        if(appointment.Status!="approved") return null;
+        if(appointment.Status!=AppointmentStatus.Approved) return null;
 
-        appointment.Status="completed";
+        appointment.Status=AppointmentStatus.Completed;
 
         await context.SaveChangesAsync();
 

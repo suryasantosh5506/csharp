@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using HospitalManagementAPI.enums;
 
 namespace HospitalManagementAPI.Dtos.Appointment;
 
@@ -14,5 +15,5 @@ public record UpdateAppointmentDto(
     string Reason,
 
     [Required]
-    string Status
+    AppointmentStatus Status
 );

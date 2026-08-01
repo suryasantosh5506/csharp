@@ -1,3 +1,5 @@
+using HospitalManagementAPI.enums;
+
 namespace HospitalManagementAPI.Entities;
 
 public class DoctorApplication
@@ -23,7 +25,7 @@ public class DoctorApplication
 
     public string LicenseNumber { get; set; } = string.Empty;
 
-    public string Status { get; set; } = "Pending";
+    public DoctorApplicationStatus Status { get; set; } = DoctorApplicationStatus.Pending;
 
     public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
 }

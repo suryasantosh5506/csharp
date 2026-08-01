@@ -4,6 +4,7 @@ using System.Text;
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.User;
 using HospitalManagementAPI.Entities;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.Options;
 using Microsoft.AspNetCore.Identity;
@@ -28,7 +29,7 @@ public class AuthService(
             LastName=newUser.LastName.Trim(),
             Email=newUser.Email.Trim(),
             PasswordHash="",
-            Role="Patient",
+            Role=UserRole.Patient,
             CreatedAt=DateTime.UtcNow
         };
 
@@ -59,7 +60,7 @@ public class AuthService(
         {
             new(ClaimTypes.NameIdentifier,user.Id.ToString()),
             new(ClaimTypes.Email,user.Email),
-            new(ClaimTypes.Role,user.Role),
+            new(ClaimTypes.Role,user.Role.ToString()),
             new(ClaimTypes.GivenName,user.FirstName),
             new(ClaimTypes.Surname,user.LastName)
         };

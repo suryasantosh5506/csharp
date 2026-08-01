@@ -2,6 +2,7 @@ using System.Security.Claims;
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.DoctorApplication;
 using HospitalManagementAPI.Entities;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagementAPI.Controllers;
 
-[Authorize(Roles = "Patient")]
+[Authorize(Roles =nameof(UserRole.Patient))]
 public class DoctorApplicationController(HospitalContext context,IDoctorApplicationService doctorApplicationService): BaseApiController
 {
     private async Task<Patient?> GetCurrentPatientAsync()
@@ -46,7 +47,7 @@ public class DoctorApplicationController(HospitalContext context,IDoctorApplicat
         if(isDoctor)
             return BadRequest("You are already a doctor.");
 
-        if(await context.DoctorApplications.AnyAsync(x=>x.UserId==patient.UserId && x.Status=="Pending"))
+        if(await context.DoctorApplications.AnyAsync(x=>x.UserId==patient.UserId && x.Status==DoctorApplicationStatus.Pending))
             return BadRequest("Application already pending.");
 
         var application=await doctorApplicationService.ApplyDoctorAsync(patient.UserId,applicationDto);

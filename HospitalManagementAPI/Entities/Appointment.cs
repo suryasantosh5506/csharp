@@ -1,3 +1,5 @@
+using HospitalManagementAPI.enums;
+
 namespace HospitalManagementAPI.Entities;
 
 public class Appointment
@@ -18,7 +20,7 @@ public class Appointment
 
     public required string Reason { get; set; }
 
-    public required string Status { get; set; }
+    public required AppointmentStatus Status { get; set; }
 
     public DateTime CreatedAt { get; set; }
 }

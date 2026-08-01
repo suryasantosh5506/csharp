@@ -1,5 +1,6 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Extensions;
 using HospitalManagementAPI.RequestHelpers;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,7 @@ public class AdminAppointmentService(HospitalContext context) : IAdminAppointmen
         var query=context.Appointments
             .Include(x=>x.Patient)
             .Include(x=>x.Doctor)
-            .Where(x=>x.Status=="pending")
+            .Where(x=>x.Status==AppointmentStatus.Pending)
             .Select(x=>x.ToDto());
 
         var appointments=await PagedList<AppointmentDetailsDto>.ToPagedList(

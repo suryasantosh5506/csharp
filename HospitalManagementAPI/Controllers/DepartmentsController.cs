@@ -1,5 +1,6 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Department;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagementAPI.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles =nameof(UserRole.Admin))]
 public class DepartmentsController(HospitalContext context,IDepartmentService departmentService) : BaseApiController
 {
     [HttpGet]

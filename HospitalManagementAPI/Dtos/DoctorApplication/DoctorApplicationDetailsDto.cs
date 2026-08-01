@@ -1,3 +1,5 @@
+using HospitalManagementAPI.enums;
+
 namespace HospitalManagementAPI.Dtos.DoctorApplication;
 
 public record class DoctorApplicationDetailsDto
@@ -11,6 +13,6 @@ public record class DoctorApplicationDetailsDto
     string HospitalName,
     string Bio,
     string LicenseNumber,
-    string Status,
+    DoctorApplicationStatus Status,
     DateTime AppliedAt
 );

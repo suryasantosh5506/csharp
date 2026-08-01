@@ -1,6 +1,7 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
 using HospitalManagementAPI.Entities;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Extensions;
 using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
@@ -47,7 +48,7 @@ public class AppointmentService(HospitalContext context) : IAppointmentService
             AppointmentDate=createAppointmentDto.AppointmentDate,
             AppointmentTime=createAppointmentDto.AppointmentTime,
             Reason=createAppointmentDto.Reason.Trim(),
-            Status="Pending",
+            Status=AppointmentStatus.Pending,
             CreatedAt=DateTime.UtcNow
         };
 
@@ -75,7 +76,7 @@ public class AppointmentService(HospitalContext context) : IAppointmentService
         appointment.AppointmentDate=updateAppointmentDto.AppointmentDate;
         appointment.AppointmentTime=updateAppointmentDto.AppointmentTime;
         appointment.Reason=updateAppointmentDto.Reason.Trim();
-        appointment.Status=updateAppointmentDto.Status.Trim();
+        appointment.Status=updateAppointmentDto.Status;
 
         await context.SaveChangesAsync();
 

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.Appointment;
 using HospitalManagementAPI.Entities;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagementAPI.Controllers;
 
-[Authorize(Roles = "Doctor")]
+[Authorize(Roles =nameof(UserRole.Doctor))]
 public class DoctorAppointmentController(
     HospitalContext context,
     IDoctorAppointmentService doctorAppointmentService) : BaseApiController

@@ -1,6 +1,7 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.DoctorApplication;
 using HospitalManagementAPI.Entities;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Extensions;
 using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
@@ -25,7 +26,7 @@ public class AdminDoctorApplicationService(HospitalContext context) : IAdminDoct
     public async Task<PagedList<DoctorApplicationDetailsDto>> GetAllPendingApplicationsAsync(PaginationParams paginationParams)
     {
         var query=context.DoctorApplications
-            .Where(x=>x.Status=="Pending")
+            .Where(x=>x.Status==DoctorApplicationStatus.Pending)
             .Include(x=>x.User)
             .Select(x=>x.ToDto());
 
@@ -54,7 +55,7 @@ public class AdminDoctorApplicationService(HospitalContext context) : IAdminDoct
 
         if(application is null) return null;
 
-        application.Status="Rejected";
+        application.Status=DoctorApplicationStatus.Rejected;
 
         await context.SaveChangesAsync();
 
@@ -70,7 +71,7 @@ public class AdminDoctorApplicationService(HospitalContext context) : IAdminDoct
         if(application is null)
             return null;
 
-        if(application.Status!="Pending")
+        if(application.Status!=DoctorApplicationStatus.Pending)
             return null;
 
         var patient=await context.Patients
@@ -98,8 +99,8 @@ public class AdminDoctorApplicationService(HospitalContext context) : IAdminDoct
 
         context.Doctors.Add(doctor);
 
-        application.User.Role="Doctor";
-        application.Status="Approved";
+        application.User.Role=UserRole.Doctor;
+        application.Status=DoctorApplicationStatus.Approved;
 
         await context.SaveChangesAsync();
 

@@ -1,6 +1,7 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.DoctorApplication;
 using HospitalManagementAPI.Entities;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Extensions;
 using HospitalManagementAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,7 @@ public class DoctorApplicationService(HospitalContext context) : IDoctorApplicat
             HospitalName=applicationDto.HospitalName,
             Bio=applicationDto.Bio,
             LicenseNumber=applicationDto.LicenseNumber,
-            Status="Pending",
+            Status=DoctorApplicationStatus.Pending,
             AppliedAt=DateTime.UtcNow
         };
 

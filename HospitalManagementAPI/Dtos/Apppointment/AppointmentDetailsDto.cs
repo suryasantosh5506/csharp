@@ -1,3 +1,5 @@
+using HospitalManagementAPI.enums;
+
 namespace HospitalManagementAPI.Dtos.Appointment;
 
 public record AppointmentDetailsDto(
@@ -9,5 +11,5 @@ public record AppointmentDetailsDto(
     DateOnly AppointmentDate,
     TimeOnly AppointmentTime,
     string Reason,
-    string Status
+    AppointmentStatus Status
 );

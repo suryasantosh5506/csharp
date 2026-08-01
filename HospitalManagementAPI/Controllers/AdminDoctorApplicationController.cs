@@ -1,5 +1,6 @@
 using HospitalManagementAPI.Data;
 using HospitalManagementAPI.Dtos.DoctorApplication;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagementAPI.Controllers;
 
-[Authorize(Roles ="Admin")]
+[Authorize(Roles =nameof(UserRole.Admin))]
 public class AdminDoctorApplicationController(
     HospitalContext context,
     IAdminDoctorApplicationService adminDoctorApplicationService) : BaseApiController
@@ -48,7 +49,7 @@ public class AdminDoctorApplicationController(
         if(application is null)
             return NotFound();
 
-        if(application.Status!="Pending")
+        if(application.Status!=DoctorApplicationStatus.Pending)
             return BadRequest("Application has already been processed.");
 
         var updatedApplication=await adminDoctorApplicationService.RejectApplicationAsync(id);
@@ -64,7 +65,7 @@ public class AdminDoctorApplicationController(
         if(application is null)
             return NotFound();
 
-        if(application.Status!="Pending")
+        if(application.Status!=DoctorApplicationStatus.Pending)
             return BadRequest("Application has already been processed.");
 
         var updatedApplication=await adminDoctorApplicationService.ApproveApplicationAsync(id);

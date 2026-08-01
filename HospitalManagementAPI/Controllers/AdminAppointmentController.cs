@@ -1,4 +1,5 @@
 using HospitalManagementAPI.Dtos.Appointment;
+using HospitalManagementAPI.enums;
 using HospitalManagementAPI.Interfaces;
 using HospitalManagementAPI.RequestHelpers;
 using HospitalManagementAPI.Services;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagementAPI.Controllers;
 
-[Authorize(Roles ="Admin")]
+[Authorize(Roles =nameof(UserRole.Admin))]
 public class AdminAppointmentController(IAdminAppointmentService adminAppointmentService):BaseApiController
 {
     [HttpGet]
