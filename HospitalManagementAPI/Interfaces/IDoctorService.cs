@@ -5,7 +5,7 @@ namespace HospitalManagementAPI.Interfaces;
 
 public interface IDoctorService
 {
-    Task<PagedList<DoctorDetailsDto>> GetAllDoctorsAsync(PaginationParams paginationParams);
+    Task<PagedList<DoctorDetailsDto>> GetAllDoctorsAsync(DoctorParams doctorParams);
 
     Task<DoctorDetailsDto?> GetDoctorByIdAsync(int id);
 

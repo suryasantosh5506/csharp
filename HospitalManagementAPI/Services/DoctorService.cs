@@ -10,11 +10,69 @@ namespace HospitalManagementAPI.Services;
 
 public class DoctorService(HospitalContext context) : IDoctorService
 {
-    public async Task<PagedList<DoctorDetailsDto>> GetAllDoctorsAsync(PaginationParams paginationParams)
+    public async Task<PagedList<DoctorDetailsDto>> GetAllDoctorsAsync(DoctorParams doctorParams)
     {
-        var query = context.Doctors.Include(x => x.Department).Select(x => x.ToDto());
+        IQueryable<Doctor> query=context.Doctors.Include(x=>x.Department);
 
-        return await PagedList<DoctorDetailsDto>.ToPagedList(query,paginationParams.pageNumber,paginationParams.pageSize);
+        if(!string.IsNullOrWhiteSpace(doctorParams.SearchTerm))
+        {
+            string search=doctorParams.SearchTerm.Trim().ToLower();
+
+            query=query.Where(x=>
+                x.FirstName.ToLower().Contains(search) ||
+                x.LastName.ToLower().Contains(search) ||
+                x.Specialization.ToLower().Contains(search) ||
+                x.HospitalName.ToLower().Contains(search));
+        }
+
+        if(doctorParams.DepartmentId.HasValue)
+        {
+            query=query.Where(x=>x.DepartmentId==doctorParams.DepartmentId.Value);
+        }
+
+        if(!string.IsNullOrWhiteSpace(doctorParams.Specialization))
+        {
+            string specialization=doctorParams.Specialization.Trim().ToLower();
+            query=query.Where(x=>x.Specialization.ToLower()==specialization);
+        }
+
+        if(doctorParams.MinFee.HasValue)
+        {
+            query=query.Where(x=>x.ConsultationFee>=doctorParams.MinFee.Value);
+        }
+
+        if(doctorParams.MaxFee.HasValue)
+        {
+            query=query.Where(x=>x.ConsultationFee<=doctorParams.MaxFee.Value);
+        }
+
+        if(doctorParams.MinExperience.HasValue)
+        {
+            query=query.Where(x=>x.ExperienceYears>=doctorParams.MinExperience.Value);
+        }
+
+        query=doctorParams.SortBy?.ToLower() switch
+        {
+            "name" => query.OrderBy(x=>x.FirstName).ThenBy(x=>x.LastName),
+
+            "-name" => query.OrderByDescending(x=>x.FirstName)
+                            .ThenByDescending(x=>x.LastName),
+
+            "experience" => query.OrderBy(x=>x.ExperienceYears),
+
+            "-experience" => query.OrderByDescending(x=>x.ExperienceYears),
+
+            "fee" => query.OrderBy(x=>x.ConsultationFee),
+
+            "-fee" => query.OrderByDescending(x=>x.ConsultationFee),
+
+            _ => query.OrderBy(x=>x.FirstName)
+        };
+
+        return await PagedList<DoctorDetailsDto>.ToPagedList(
+            query.Select(x=>x.ToDto()),
+            doctorParams.pageNumber,
+            doctorParams.pageSize);
     }
 
     public async Task<DoctorDetailsDto?> GetDoctorByIdAsync(int id)

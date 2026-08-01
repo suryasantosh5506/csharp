@@ -12,9 +12,9 @@ namespace HospitalManagementAPI.Controllers;
 public class AdminAppointmentController(IAdminAppointmentService adminAppointmentService):BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery]DoctorParams doctorParams)
     {
-        var appointments=await adminAppointmentService.GetAllAppointmentsForAdminAsync(paginationParams);
+        var appointments=await adminAppointmentService.GetAllAppointmentsForAdminAsync(doctorParams);
 
         return Ok(appointments);
     }
@@ -30,9 +30,9 @@ public class AdminAppointmentController(IAdminAppointmentService adminAppointmen
     }
 
     [HttpGet("pending")]
-    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetPendingAppointmentsAsync([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetPendingAppointmentsAsync([FromQuery]DoctorParams doctorParams)
     {
-        var appointments=await adminAppointmentService.GetPendingAppointmentsAsync(paginationParams);
+        var appointments=await adminAppointmentService.GetPendingAppointmentsAsync(doctorParams);
 
         return Ok(appointments);
     }

@@ -22,11 +22,11 @@ public class DoctorAvailabilityController(HospitalContext context,IDoctorAvailab
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedList<DoctorAvailabilityDetailsDto>>> GetAllAvailabilitesAsync([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<DoctorAvailabilityDetailsDto>>> GetAllAvailabilitesAsync([FromQuery]DoctorParams doctorParams)
     {
         var doctor=await GetCurrentDoctorAsync();
         if(doctor is null) return Unauthorized();
-        var availabilities=await doctorAvailabilityService.GetDoctorAvailabilityAsync(doctor.Id,paginationParams);
+        var availabilities=await doctorAvailabilityService.GetDoctorAvailabilityAsync(doctor.Id,doctorParams);
         return Ok(availabilities);
     }
 

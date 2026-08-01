@@ -13,9 +13,9 @@ namespace HospitalManagementAPI.Controllers;
 public class PatientController(HospitalContext context,IPatientService patientService) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<PagedList<PatientDetailsDto>>> GetAllPatientsAsync([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<PatientDetailsDto>>> GetAllPatientsAsync([FromQuery]DoctorParams doctorParams)
     {
-        var patients=await patientService.GetAllPatientsAsync(paginationParams);
+        var patients=await patientService.GetAllPatientsAsync(doctorParams);
         return Ok(patients);
     }
 

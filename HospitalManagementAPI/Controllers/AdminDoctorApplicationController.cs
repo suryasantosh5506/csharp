@@ -15,17 +15,17 @@ public class AdminDoctorApplicationController(
     IAdminDoctorApplicationService adminDoctorApplicationService) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<PagedList<DoctorApplicationDetailsDto>>> GetAllApplicationsAsync([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<DoctorApplicationDetailsDto>>> GetAllApplicationsAsync([FromQuery]DoctorParams doctorParams)
     {
-        var applications=await adminDoctorApplicationService.GetAllApplicationsAsync(paginationParams);
+        var applications=await adminDoctorApplicationService.GetAllApplicationsAsync(doctorParams);
 
         return Ok(applications);
     }
 
     [HttpGet("pending")]
-    public async Task<ActionResult<PagedList<DoctorApplicationDetailsDto>>> GetAllPendingApplicationsAsync([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<DoctorApplicationDetailsDto>>> GetAllPendingApplicationsAsync([FromQuery]DoctorParams doctorParams)
     {
-        var applications=await adminDoctorApplicationService.GetAllPendingApplicationsAsync(paginationParams);
+        var applications=await adminDoctorApplicationService.GetAllPendingApplicationsAsync(doctorParams);
 
         return Ok(applications);
     }

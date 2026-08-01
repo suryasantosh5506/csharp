@@ -21,11 +21,11 @@ public class AppointmentController(HospitalContext context,IAppointmentService a
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery] PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery] DoctorParams doctorParams)
     {
         var patient=await GetCurrentPatientAsync();
         if(patient is null) return Unauthorized("Patient profile not found.");
-        var appointments=await appointmentService.GetAllAppointmentsAsync(patient.Id,paginationParams);
+        var appointments=await appointmentService.GetAllAppointmentsAsync(patient.Id,doctorParams);
         return Ok(appointments);
     }
 

@@ -13,9 +13,9 @@ namespace HospitalManagementAPI.Controllers;
 public class DepartmentsController(HospitalContext context,IDepartmentService departmentService) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<PagedList<DepartmentDetailsDto>>> GetAllDepartmentsAsync([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<DepartmentDetailsDto>>> GetAllDepartmentsAsync([FromQuery]DoctorParams doctorParams)
     {
-        var departments=await departmentService.GetAllDepartmentsAsync(paginationParams);
+        var departments=await departmentService.GetAllDepartmentsAsync(doctorParams);
 
         return Ok(departments);
     }

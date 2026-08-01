@@ -24,14 +24,14 @@ public class DoctorAppointmentController(
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedList<AppointmentDetailsDto>>> GetAllAppointmentsAsync([FromQuery]DoctorParams doctorParams)
     {
         var doctor=await GetCurrentDoctorAsync();
 
         if(doctor is null)
             return Unauthorized();
 
-        var appointments=await doctorAppointmentService.GetAllAppointmentsAsync(doctor.Id,paginationParams);
+        var appointments=await doctorAppointmentService.GetAllAppointmentsAsync(doctor.Id,doctorParams);
 
         return Ok(appointments);
     }
