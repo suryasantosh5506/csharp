@@ -34,4 +34,5 @@ public class Doctor
     public string Bio { get; set; } = string.Empty;
 
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+    public ICollection<DoctorAvailability> Availabilities { get; set; } = new List<DoctorAvailability>();
 }
