@@ -5,6 +5,7 @@ using LearnHubApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using LearnHubApi.Entities;
 using LearnHubApi.Extensions;
+using LearnHubApi.Exceptions;
 
 namespace LearnHubApi.Services;
 
@@ -14,34 +15,34 @@ public class ModuleService(ICurrentUserService userService,AppDbContext context)
 {
     if (!userService.IsAuthenticated)
     {
-        throw new Exception("Unauthorized");
+        throw new UnauthorizedException("Unauthorized");
     }
 
     if (userService.Role != UserRole.Instructor && userService.Role != UserRole.Admin)
     {
-        throw new Exception("Only instructors and admins can create modules.");
+        throw new ForbiddenException("Only instructors and admins can create modules.");
     }
 
     var course = await context.Courses.FirstOrDefaultAsync(x => x.Id == dto.CourseId);
 
     if (course is null)
     {
-        throw new Exception("Course not found.");
+        throw new NotFoundException("Course not found.");
     }
 
     if (userService.Role != UserRole.Admin && userService.UserId != course.InstructorId)
     {
-        throw new Exception("You are not allowed to add modules to this course.");
+        throw new ForbiddenException("You are not allowed to add modules to this course.");
     }
 
     if (await context.Modules.AnyAsync(x =>x.CourseId == dto.CourseId && x.Title.ToLower() == dto.Title.Trim().ToLower()))
     {
-        throw new Exception("A module with the same title already exists in this course.");
+        throw new ConflictException("A module with the same title already exists in this course.");
     }
 
     if (await context.Modules.AnyAsync(x =>x.CourseId == dto.CourseId && x.Order == dto.Order))
     {
-        throw new Exception("Module order already exists in this course.");
+        throw new ConflictException("Module order already exists in this course.");
     }
 
     Module module = new()
@@ -63,15 +64,17 @@ public class ModuleService(ICurrentUserService userService,AppDbContext context)
 
     public async Task DeleteAsync(int id)
     {
-        if(!userService.IsAuthenticated) throw new Exception("Unauthorized.");
+        if(!userService.IsAuthenticated) throw new UnauthorizedException("Unauthorized.");
         var module=await context.Modules.Include(x=>x.Course).Include(x=>x.Lessons).FirstOrDefaultAsync(x=>x.Id==id);
         if(module is null)
         {
-            throw new Exception("Module not found.");
+            throw new NotFoundException("Module not found.");
         }
-        if(userService.Role!=UserRole.Admin && userService.Role!=UserRole.Instructor) throw new Exception("Not Allowed");
-        if(module.Course.InstructorId!=userService.UserId && userService.Role!=UserRole.Admin) throw new Exception("Forbidden");
-        if (module.Lessons.Any()) throw new Exception("Cannot delete module with existing lessons.");
+        if(userService.Role!=UserRole.Admin && userService.Role!=UserRole.Instructor) 
+            throw new ForbiddenException("Not Allowed");
+        if(module.Course.InstructorId!=userService.UserId && userService.Role!=UserRole.Admin) 
+            throw new ForbiddenException("Forbidden");
+        if (module.Lessons.Any()) throw new ConflictException("Cannot delete module with existing lessons.");
         context.Modules.Remove(module);
         await context.SaveChangesAsync();
     }
@@ -86,7 +89,7 @@ public class ModuleService(ICurrentUserService userService,AppDbContext context)
          var module=await context.Modules.Include(x=>x.Course).Include(x=>x.Lessons).FirstOrDefaultAsync(x=>x.Id==id);
         if(module is null)
         {
-            throw new Exception("Module not found.");
+            throw new NotFoundException("Module not found.");
         }
         return module.ToDto();
     }
@@ -95,42 +98,42 @@ public class ModuleService(ICurrentUserService userService,AppDbContext context)
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         if (userService.Role != UserRole.Instructor && userService.Role != UserRole.Admin)
         {
-            throw new Exception("Only instructors and admins can create modules.");
+            throw new ForbiddenException("Only instructors and admins can create modules.");
         }
 
         var course = await context.Courses.FirstOrDefaultAsync(x => x.Id == dto.CourseId);
 
         if (course is null)
         {
-            throw new Exception("Course not found.");
+            throw new NotFoundException("Course not found.");
         }
 
         var module=await context.Modules.Include(x=>x.Course).Include(x=>x.Lessons).FirstOrDefaultAsync(x=>x.CourseId==dto.CourseId && x.Id==id);
 
         if (module is null)
         {
-            throw new Exception("Module not found.");
+            throw new NotFoundException("Module not found.");
         }
 
         if (userService.Role != UserRole.Admin && userService.UserId != course.InstructorId)
         {
-            throw new Exception("You are not allowed to add modules to this course.");
+            throw new ForbiddenException("You are not allowed to add modules to this course.");
         }
 
         if (await context.Modules.AnyAsync(x =>x.CourseId == dto.CourseId && x.Title.ToLower() == dto.Title.Trim().ToLower() && 
                     x.Id != id))
         {
-            throw new Exception("A module with the same title already exists in this course.");
+            throw new ConflictException("A module with the same title already exists in this course.");
         }
 
         if (await context.Modules.AnyAsync(x =>x.CourseId == dto.CourseId && x.Order == dto.Order && x.Id != id))
         {
-            throw new Exception("Module order already exists in this course.");
+            throw new ConflictException("Module order already exists in this course.");
         }
 
         module.Title=dto.Title.Trim();

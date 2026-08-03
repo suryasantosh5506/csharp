@@ -2,6 +2,7 @@ using LearnHubApi.Data;
 using LearnHubApi.Dtos.Lessons;
 using LearnHubApi.Entities;
 using LearnHubApi.Enums;
+using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -15,34 +16,34 @@ public class LessonService(AppDbContext context,ICurrentUserService userService,
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         if (userService.Role != UserRole.Admin && userService.Role != UserRole.Instructor)
         {
-            throw new Exception("Only instructors and admins can create lessons.");
+            throw new ForbiddenException("Only instructors and admins can create lessons.");
         }
 
         var module = await context.Modules.Include(x => x.Course).FirstOrDefaultAsync(x => x.Id == dto.ModuleId);
 
         if (module is null)
         {
-            throw new Exception("Module not found.");
+            throw new NotFoundException("Module not found.");
         }
 
         if (userService.Role != UserRole.Admin && module.Course.InstructorId != userService.UserId)
         {
-            throw new Exception("Forbidden");
+            throw new ForbiddenException("Forbidden");
         }
 
         if (await context.Lessons.AnyAsync(x =>x.ModuleId == dto.ModuleId && x.Title.ToLower() == dto.Title.Trim().ToLower()))
         {
-            throw new Exception("Lesson title already exists in this module.");
+            throw new ConflictException("Lesson title already exists in this module.");
         }
 
         if (await context.Lessons.AnyAsync(x =>x.ModuleId == dto.ModuleId && x.Order == dto.Order))
         {
-            throw new Exception("Lesson order already exists in this module.");
+            throw new ConflictException("Lesson order already exists in this module.");
         }
 
         var uploadResult = await cloudinaryService.VideoUploadAsync(dto.File);
@@ -70,24 +71,24 @@ public class LessonService(AppDbContext context,ICurrentUserService userService,
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         if (userService.Role != UserRole.Admin && userService.Role != UserRole.Instructor)
         {
-            throw new Exception("Only instructors and admins can delete lessons.");
+            throw new ForbiddenException("Only instructors and admins can delete lessons.");
         }
 
         var lesson = await context.Lessons.Include(x => x.Module).ThenInclude(x => x.Course).FirstOrDefaultAsync(x => x.Id == id);
 
         if (lesson is null)
         {
-            throw new Exception("Lesson not found.");
+            throw new NotFoundException("Lesson not found.");
         }
 
         if (userService.Role != UserRole.Admin && lesson.Module.Course.InstructorId != userService.UserId)
         {
-            throw new Exception("Forbidden");
+            throw new ForbiddenException("Forbidden");
         }
 
         await cloudinaryService.DeleteVideoAsync(lesson.PublicId);
@@ -101,7 +102,7 @@ public class LessonService(AppDbContext context,ICurrentUserService userService,
     {
         if (!await context.Modules.AnyAsync(x => x.Id == moduleId))
         {
-            throw new Exception("Module not found.");
+            throw new NotFoundException("Module not found.");
         }
         return await context.Lessons.Where(x=>x.ModuleId==moduleId).OrderBy(x=>x.Order).Include(x=>x.Module).Select(x=>x.ToDto()).ToListAsync();
     }
@@ -109,7 +110,7 @@ public class LessonService(AppDbContext context,ICurrentUserService userService,
     public async Task<LessonDto> GetByIdAsync(int id)
     {
         var lesson=await context.Lessons.Include(x=>x.Module).FirstOrDefaultAsync(x=>x.Id==id);
-        if(lesson is null) throw new Exception("Lesson not Found");
+        if(lesson is null) throw new NotFoundException("Lesson not Found");
         return lesson.ToDto();
     }
 
@@ -117,40 +118,40 @@ public class LessonService(AppDbContext context,ICurrentUserService userService,
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         if (userService.Role != UserRole.Admin && userService.Role != UserRole.Instructor)
         {
-            throw new Exception("Only instructors and admins can update lessons.");
+            throw new ForbiddenException("Only instructors and admins can update lessons.");
         }
 
         var lesson = await context.Lessons.Include(x => x.Module).ThenInclude(x => x.Course).FirstOrDefaultAsync(x => x.Id == id);
 
         if (lesson is null)
         {
-            throw new Exception("Lesson not found.");
+            throw new NotFoundException("Lesson not found.");
         }
 
         if (userService.Role != UserRole.Admin && lesson.Module.Course.InstructorId != userService.UserId)
         {
-            throw new Exception("Forbidden");
+            throw new ForbiddenException("Forbidden");
         }
 
         if (!await context.Modules.AnyAsync(x => x.Id == dto.ModuleId))
         {
-            throw new Exception("Module not found.");
+            throw new NotFoundException("Module not found.");
         }
 
         if (await context.Lessons.AnyAsync(x => x.ModuleId == dto.ModuleId && x.Title.ToLower() == dto.Title.Trim().ToLower() 
                 && x.Id != id))
         {
-            throw new Exception("Lesson title already exists in this module.");
+            throw new ConflictException("Lesson title already exists in this module.");
         }
 
         if (await context.Lessons.AnyAsync(x =>x.ModuleId == dto.ModuleId && x.Order == dto.Order && x.Id != id))
         {
-            throw new Exception("Lesson order already exists in this module.");
+            throw new ConflictException("Lesson order already exists in this module.");
         }
 
         lesson.Title = dto.Title.Trim();

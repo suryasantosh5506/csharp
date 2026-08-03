@@ -1,6 +1,7 @@
 using LearnHubApi.Data;
 using LearnHubApi.Dtos.Category;
 using LearnHubApi.Entities;
+using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ public class CategoryService(AppDbContext context) : ICategoryService
     {
         if (await context.Categories.AnyAsync(x => x.Name.ToLower() == dto.Name.ToLower()))
         {
-            throw new Exception("Category already exists");
+            throw new ConflictException("Category already exists");
         }
 
         Category category = new()
@@ -34,12 +35,12 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
         if (category is null)
         {
-            throw new Exception("Category not found");
+            throw new NotFoundException("Category not found");
         }
 
         if (await context.Courses.AnyAsync(x => x.CategoryId == id))
         {
-            throw new Exception("Cannot delete category with existing courses.");
+            throw new ConflictException("Cannot delete category with existing courses.");
         }
 
         context.Categories.Remove(category);
@@ -48,19 +49,16 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
     public async Task<IEnumerable<CategoryDto>> GetAllAsync()
     {
-        return await context.Categories
-            .Select(x => x.ToDto())
-            .ToListAsync();
+        return await context.Categories.Select(x => x.ToDto()).ToListAsync();
     }
 
     public async Task<CategoryDto> GetByIdAsync(int id)
     {
-        var category = await context.Categories
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
 
         if (category is null)
         {
-            throw new Exception("Category not found");
+            throw new NotFoundException("Category not found");
         }
 
         return category.ToDto();
@@ -68,19 +66,16 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
     public async Task<CategoryDto> UpdateAsync(int id, UpdateCategoryDto dto)
     {
-        if (await context.Categories.AnyAsync(x =>
-            x.Name.ToLower() == dto.Name.ToLower() &&
-            x.Id != id))
+        if (await context.Categories.AnyAsync(x =>x.Name.ToLower() == dto.Name.ToLower() &&x.Id != id))
         {
-            throw new Exception("Category already exists");
+            throw new ConflictException("Category already exists");
         }
 
-        var category = await context.Categories
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
 
         if (category is null)
         {
-            throw new Exception("Category not found");
+            throw new NotFoundException("Category not found");
         }
 
         category.Name = dto.Name.Trim();

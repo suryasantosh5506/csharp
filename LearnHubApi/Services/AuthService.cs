@@ -1,6 +1,7 @@
 using LearnHubApi.Data;
 using LearnHubApi.Dtos.Authorization;
 using LearnHubApi.Entities;
+using LearnHubApi.Exceptions;
 using LearnHubApi.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +15,11 @@ public class AuthService(AppDbContext context,ITokenService tokenService,Passwor
         var user=await context.Users.FirstOrDefaultAsync(x=>x.Email==loginDto.Email);
         if(user is null)
         {
-            throw new Exception("User not registered");
+            throw new NotFoundException("User not registered");
         }
         if (passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password) == PasswordVerificationResult.Failed)
         {
-            throw new Exception("Invalid Credentials");
+            throw new UnauthorizedException("Invalid Credentials");
         }
         var token=tokenService.GenerateToken(user);
         return new LoginResponseDto(token,user.FirstName,user.LastName,user.Email,user.Role,user.Id);
@@ -28,7 +29,7 @@ public class AuthService(AppDbContext context,ITokenService tokenService,Passwor
     {
         if(await context.Users.AnyAsync(x => x.Email == registerDto.Email))
         {
-            throw new Exception("Email Already Registered");
+            throw new ConflictException("Email Already Registered");
         }
 
         User user=new User()

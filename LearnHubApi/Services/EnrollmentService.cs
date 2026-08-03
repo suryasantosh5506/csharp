@@ -1,6 +1,7 @@
 using LearnHubApi.Data;
 using LearnHubApi.Dtos.Enrollments;
 using LearnHubApi.Entities;
+using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -13,18 +14,18 @@ public class EnrollmentService(AppDbContext context,ICurrentUserService userServ
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
         var course=await context.Courses.FindAsync(courseId);
         if(course is null)
         {
-            throw new Exception("Course Not Found");
+            throw new NotFoundException("Course Not Found");
         }
         var enrollment=await context.Enrollments.FirstOrDefaultAsync(x=>x.StudentId==userService.UserId && x.CourseId == courseId);
 
         if(enrollment is null)
         {
-            throw new Exception("You are not enrolled in this course.");
+            throw new NotFoundException("You are not enrolled in this course.");
         }
         
         context.Enrollments.Remove(enrollment);
@@ -35,21 +36,21 @@ public class EnrollmentService(AppDbContext context,ICurrentUserService userServ
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
         var course=await context.Courses.FindAsync(dto.CourseId);
         if(course is null)
         {
-            throw new Exception("Course Not Found");
+            throw new NotFoundException("Course Not Found");
         }
         if (course.InstructorId == userService.UserId)
         {
-            throw new Exception("Instructor cannot Enroll to his own course");
+            throw new ConflictException("Instructor cannot Enroll to his own course");
         }
 
         if(await context.Enrollments.AnyAsync(x=>x.StudentId==userService.UserId && x.CourseId == dto.CourseId))
         {
-            throw new Exception("You already enrolled to this course");
+            throw new ConflictException("You already enrolled to this course");
         }
         Enrollment enrollment=new Enrollment()
         {
@@ -67,7 +68,7 @@ public class EnrollmentService(AppDbContext context,ICurrentUserService userServ
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
         return await context.Enrollments.Where(x=>x.StudentId==userService.UserId).Include(x=>x.Course).Include(x=>x.Student).Select(x=>x.ToDto()).OrderByDescending(x => x.EnrolledAt).ToListAsync();
     }

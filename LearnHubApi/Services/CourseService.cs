@@ -2,6 +2,7 @@ using LearnHubApi.Data;
 using LearnHubApi.Dtos.Courses;
 using LearnHubApi.Entities;
 using LearnHubApi.Enums;
+using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -13,23 +14,22 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
     public async Task<CourseDto> CreateAsync(CreateCourseDto dto)
     {
         if (!userService.IsAuthenticated)
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
 
-        if (userService.Role != UserRole.Instructor &&
-            userService.Role != UserRole.Admin)
+        if (userService.Role != UserRole.Instructor && userService.Role != UserRole.Admin)
         {
-            throw new Exception("Only instructors and admins can create courses.");
+            throw new ForbiddenException("Only instructors and admins can create courses.");
         }
 
         if (!await context.Categories.AnyAsync(x => x.Id == dto.CategoryId))
         {
-            throw new Exception("Category not found.");
+            throw new NotFoundException("Category not found.");
         }
 
         if (await context.Courses.AnyAsync(x =>
             x.Title.ToLower() == dto.Title.Trim().ToLower()))
         {
-            throw new Exception("Course already exists.");
+            throw new ConflictException("Course already exists.");
         }
 
         Course course = new()
@@ -49,10 +49,7 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
         context.Courses.Add(course);
         await context.SaveChangesAsync();
 
-        course = await context.Courses
-            .Include(x => x.Instructor)
-            .Include(x => x.Category)
-            .FirstAsync(x => x.Id == course.Id);
+        course = await context.Courses.Include(x => x.Instructor).Include(x => x.Category).FirstAsync(x => x.Id == course.Id);
 
         return course.ToDto();
     }
@@ -60,23 +57,21 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
     public async Task DeleteAsync(int id)
     {
         if (!userService.IsAuthenticated)
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
 
-        var course = await context.Courses
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var course = await context.Courses.FirstOrDefaultAsync(x => x.Id == id);
 
         if (course is null)
-            throw new Exception("Course not found.");
+            throw new NotFoundException("Course not found.");
 
-        if (userService.Role != UserRole.Admin &&
-            course.InstructorId != userService.UserId)
+        if (userService.Role != UserRole.Admin && course.InstructorId != userService.UserId)
         {
-            throw new Exception("Forbidden");
+            throw new ForbiddenException("Forbidden");
         }
 
         if (await context.Enrollments.AnyAsync(x => x.CourseId == id))
         {
-            throw new Exception("Cannot delete a course with active enrollments.");
+            throw new ConflictException("Cannot delete a course with active enrollments.");
         }
 
         context.Courses.Remove(course);
@@ -94,13 +89,10 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
 
     public async Task<CourseDto> GetByIdAsync(int id)
     {
-        var course = await context.Courses
-            .Include(x => x.Instructor)
-            .Include(x => x.Category)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var course = await context.Courses.Include(x => x.Instructor).Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id);
 
         if (course is null)
-            throw new Exception("Course not found.");
+            throw new NotFoundException("Course not found.");
 
         return course.ToDto();
     }
@@ -108,38 +100,31 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
     public async Task<CourseDto> UpdateAsync(int id, UpdateCourseDto dto)
     {
         if (!userService.IsAuthenticated)
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
 
-        if (userService.Role != UserRole.Instructor &&
-            userService.Role != UserRole.Admin)
+        if (userService.Role != UserRole.Instructor && userService.Role != UserRole.Admin)
         {
-            throw new Exception("Only instructors and admins can update courses.");
+            throw new ForbiddenException("Only instructors and admins can update courses.");
         }
 
-        var course = await context.Courses
-            .Include(x => x.Instructor)
-            .Include(x => x.Category)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var course = await context.Courses.Include(x => x.Instructor).Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id);
 
         if (course is null)
-            throw new Exception("Course not found.");
+            throw new NotFoundException("Course not found.");
 
-        if (userService.Role != UserRole.Admin &&
-            course.InstructorId != userService.UserId)
+        if (userService.Role != UserRole.Admin &&course.InstructorId != userService.UserId)
         {
-            throw new Exception("Forbidden");
+            throw new ForbiddenException("Forbidden");
         }
 
         if (!await context.Categories.AnyAsync(x => x.Id == dto.CategoryId))
         {
-            throw new Exception("Category not found.");
+            throw new NotFoundException("Category not found.");
         }
 
-        if (await context.Courses.AnyAsync(x =>
-            x.Title.ToLower() == dto.Title.Trim().ToLower() &&
-            x.Id != id))
+        if (await context.Courses.AnyAsync(x =>x.Title.ToLower() == dto.Title.Trim().ToLower() && x.Id != id))
         {
-            throw new Exception("Course already exists.");
+            throw new ConflictException("Course already exists.");
         }
 
         course.Title = dto.Title.Trim();

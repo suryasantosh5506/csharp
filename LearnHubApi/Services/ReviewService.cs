@@ -2,6 +2,7 @@ using LearnHubApi.Data;
 using LearnHubApi.Dtos.Reviews;
 using LearnHubApi.Entities;
 using LearnHubApi.Enums;
+using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -14,18 +15,18 @@ public class ReviewService(ICurrentUserService userService,AppDbContext context)
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
         var course = await context.Courses.FirstOrDefaultAsync(x => x.Id == dto.CourseId);
 
         if (course is null)
         {
-            throw new Exception("Course not found.");
+            throw new NotFoundException("Course not found.");
         }
 
         if (!await context.Enrollments.AnyAsync(x =>x.StudentId == userService.UserId && x.CourseId == dto.CourseId))
         {
-            throw new Exception("You must enroll in the course before reviewing it.");
+            throw new ForbiddenException("You must enroll in the course before reviewing it.");
         }
 
         Review review=new Review()
@@ -46,19 +47,19 @@ public class ReviewService(ICurrentUserService userService,AppDbContext context)
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         var review=await context.Reviews.Include(x=>x.Author).Include(x=>x.Course).FirstOrDefaultAsync(x=>x.Id==id);
 
         if(review is null)
         {
-            throw new Exception("Review not found");
+            throw new NotFoundException("Review not found");
         }
 
         if(userService.Role!=UserRole.Admin && userService.UserId != review.AuthorId)
         {
-            throw new Exception("Forbidden");
+            throw new ForbiddenException("Forbidden");
         }
         context.Reviews.Remove(review);
         await context.SaveChangesAsync();
@@ -68,7 +69,7 @@ public class ReviewService(ICurrentUserService userService,AppDbContext context)
     {
         if(!await context.Courses.AnyAsync(x=>x.Id==courseId))
         {
-            throw new Exception("Course not found");
+            throw new NotFoundException("Course not found");
         }
         return await context.Reviews.Where(x=>x.CourseId==courseId).OrderByDescending(x => x.CreatedAt).Include(x=>x.Course)
                                     .Include(x=>x.Author).Select(x=>x.ToDto()).ToListAsync();
@@ -78,19 +79,19 @@ public class ReviewService(ICurrentUserService userService,AppDbContext context)
     {
         if (!userService.IsAuthenticated)
         {
-            throw new Exception("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         var review=await context.Reviews.Include(x=>x.Author).Include(x=>x.Course).FirstOrDefaultAsync(x=>x.Id==id);
 
         if(review is null)
         {
-            throw new Exception("Review not found");
+            throw new NotFoundException("Review not found");
         }
 
         if(userService.Role!=UserRole.Admin && userService.UserId != review.AuthorId)
         {
-            throw new Exception("Forbidden");
+            throw new ForbiddenException("Forbidden");
         }
 
         review.Rating=dto.Rating;
