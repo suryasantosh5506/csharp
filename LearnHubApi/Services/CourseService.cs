@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LearnHubApi.Services;
 
-public class CourseService(AppDbContext context, ICurrentUserService userService) : ICourseService
+public class CourseService(AppDbContext context, ICurrentUserService userService,ICloudinaryService cloudinaryService) : ICourseService
 {
     public async Task<CourseDto> CreateAsync(CreateCourseDto dto)
     {
@@ -33,11 +33,14 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
             throw new ConflictException("Course already exists.");
         }
 
+        var result=await cloudinaryService.ImageUploadAsync(dto.Thumbnail);
+
         Course course = new()
         {
             Title = dto.Title.Trim(),
             Description = dto.Description.Trim(),
-            Thumbnail = dto.Thumbnail.Trim(),
+            Thumbnail = result.SecureUrl.AbsoluteUri,
+            PublicId=result.PublicId,
             Price = dto.Price,
             Language = dto.Language.Trim(),
             Duration = dto.Duration,
@@ -74,6 +77,8 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
         {
             throw new ConflictException("Cannot delete a course with active enrollments.");
         }
+
+        await cloudinaryService.DeleteImageAsync(course.PublicId);
 
         context.Courses.Remove(course);
         await context.SaveChangesAsync();
@@ -150,9 +155,16 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
             throw new ConflictException("Course already exists.");
         }
 
+        if(dto.Thumbnail is not null && dto.Thumbnail.Length > 0)
+        {
+            await cloudinaryService.DeleteImageAsync(course.PublicId);
+            var result=await cloudinaryService.ImageUploadAsync(dto.Thumbnail);
+            course.Thumbnail=result.SecureUrl.AbsoluteUri;
+            course.PublicId=result.PublicId;
+        }
+
         course.Title = dto.Title.Trim();
         course.Description = dto.Description.Trim();
-        course.Thumbnail = dto.Thumbnail.Trim();
         course.Price = dto.Price;
         course.Language = dto.Language.Trim();
         course.Duration = dto.Duration;

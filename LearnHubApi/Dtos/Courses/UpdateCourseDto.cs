@@ -11,9 +11,7 @@ public record UpdateCourseDto(
     [MaxLength(2000)]
     string Description,
 
-    [Required]
-    [Url]
-    string Thumbnail,
+    IFormFile? Thumbnail,
 
     [Range(0, double.MaxValue)]
     decimal Price,

@@ -5,7 +5,11 @@ namespace LearnHubApi.Interfaces;
 
 public interface ICloudinaryService
 {
-    public Task<VideoUploadResult> VideoUploadAsync(IFormFile file);
+    Task<VideoUploadResult> VideoUploadAsync(IFormFile file);
 
-    public Task<DeletionResult> DeleteVideoAsync(string publicId);
+    Task<DeletionResult> DeleteVideoAsync(string publicId);
+
+    Task<ImageUploadResult> ImageUploadAsync(IFormFile file);
+
+    Task<DeletionResult> DeleteImageAsync(string publicId);
 }

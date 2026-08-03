@@ -12,8 +12,7 @@ public record CreateCourseDto(
     string Description,
 
     [Required]
-    [Url]
-    string Thumbnail,
+    IFormFile Thumbnail,
 
     [Range(0, double.MaxValue)]
     decimal Price,

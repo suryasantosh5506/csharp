@@ -44,5 +44,31 @@ public class CloudinaryService:ICloudinaryService
         var result=await _cloudinary.DestroyAsync(deleteParams);
         return result;
     }
-    
+
+    public async Task<ImageUploadResult> ImageUploadAsync(IFormFile file)
+    {
+        var result=new ImageUploadResult();
+        if (file is null || file.Length==0) throw new Exception("No Image selected.");
+        using var stream=file.OpenReadStream();
+
+        var uploadParams=new ImageUploadParams
+        {
+            File=new FileDescription(file.FileName,stream),
+            Folder="thumbnails"
+        };
+
+        result=await _cloudinary.UploadAsync(uploadParams);
+        return result;
+    }
+
+    public async Task<DeletionResult> DeleteImageAsync(string publicId)
+    {
+        var deleteParams = new DeletionParams(publicId)
+        {
+            ResourceType = ResourceType.Image
+        };
+
+        var result=await _cloudinary.DestroyAsync(deleteParams);
+        return result;
+    }
 }
