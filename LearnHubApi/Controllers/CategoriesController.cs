@@ -2,6 +2,7 @@ using LearnHubApi.Dtos.Category;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
 using LearnHubApi.RequestHelpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LearnHubApi.Controllers;
@@ -23,6 +24,7 @@ public class CategoriesController(ICategoryService categoryService) : BaseApiCon
         return Ok(category);
     }
 
+    [Authorize(Roles ="Admin")]
     [HttpPost]
     public async Task<ActionResult<CategoryDto>> CreateCategory(CreateCategoryDto dto)
     {
@@ -35,6 +37,7 @@ public class CategoriesController(ICategoryService categoryService) : BaseApiCon
         );
     }
 
+    [Authorize(Roles ="Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<CategoryDto>> UpdateCategory(int id, UpdateCategoryDto dto)
     {
@@ -42,6 +45,7 @@ public class CategoriesController(ICategoryService categoryService) : BaseApiCon
         return Ok(category);
     }
 
+    [Authorize(Roles ="Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteCategory(int id)
     {

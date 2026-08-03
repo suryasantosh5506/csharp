@@ -4,7 +4,7 @@ namespace LearnHubApi.Interfaces;
 
 public interface IModuleService
 {
-    Task<IEnumerable<ModuleDto>> GetAllAsync();
+    Task<IEnumerable<ModuleDto>> GetByCourseAsync(int courseId);
 
     Task<ModuleDto> GetByIdAsync(int id);
 

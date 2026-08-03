@@ -19,7 +19,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
         return Ok(await lessonService.GetByIdAsync(id));
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpPost]
     public async Task<ActionResult<LessonDto>> CreateLessonAsync([FromForm] CreateLessonDto lessonDto)
     {
@@ -31,7 +31,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
             lesson);
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<LessonDto>> UpdateLessonAsync(
         int id,
@@ -40,7 +40,7 @@ public class LessonsController(ILessonService lessonService) : BaseApiController
         return Ok(await lessonService.UpdateAsync(id, updateDto));
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteLessonAsync(int id)
     {

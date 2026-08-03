@@ -79,9 +79,9 @@ public class ModuleService(ICurrentUserService userService,AppDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<ModuleDto>> GetAllAsync()
+    public async Task<IEnumerable<ModuleDto>> GetByCourseAsync(int courseId)
     {
-        return await context.Modules.Include(x=>x.Course).Include(x=>x.Lessons).Select(x=>x.ToDto()).ToListAsync();
+        return await context.Modules.Include(x=>x.Course).Include(x=>x.Lessons).Where(x=>x.CourseId==courseId).Select(x=>x.ToDto()).ToListAsync();
     }
 
     public async Task<ModuleDto> GetByIdAsync(int id)

@@ -24,7 +24,7 @@ public class CoursesController(ICourseService courseService) : BaseApiController
         return Ok(course);
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpPost]
     public async Task<ActionResult<CourseDto>> CreateCourse(CreateCourseDto dto)
     {
@@ -37,7 +37,7 @@ public class CoursesController(ICourseService courseService) : BaseApiController
         );
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<CourseDto>> UpdateCourse(int id, UpdateCourseDto dto)
     {
@@ -45,7 +45,7 @@ public class CoursesController(ICourseService courseService) : BaseApiController
         return Ok(course);
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin,Instructor")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteCourse(int id)
     {
