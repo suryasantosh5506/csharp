@@ -11,9 +11,9 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : BaseA
 {
     [Authorize]
     [HttpGet("my")]
-    public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetMyEnrollmentsAsync(PaginationParams paginationParams)
+    public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetMyEnrollmentsAsync(CourseParams courseParams)
     {
-        var enrollments=await enrollmentService.GetMyEnrollmentsAsync(paginationParams);
+        var enrollments=await enrollmentService.GetMyEnrollmentsAsync(courseParams);
         Response.AddPaginationHeader(enrollments.paginationMetaData);
         return Ok(enrollments);
     }

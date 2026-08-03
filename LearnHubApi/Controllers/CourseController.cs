@@ -10,9 +10,9 @@ namespace LearnHubApi.Controllers;
 public class CoursesController(ICourseService courseService) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses([FromQuery]CourseParams courseParams)
     {
-        var courses = await courseService.GetAllAsync(paginationParams);
+        var courses = await courseService.GetAllAsync(courseParams);
         Response.AddPaginationHeader(courses.paginationMetaData);
         return Ok(courses);
     }

@@ -79,10 +79,34 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
         await context.SaveChangesAsync();
     }
 
-    public async Task<PagedList<CourseDto>> GetAllAsync(PaginationParams paginationParams)
+    public async Task<PagedList<CourseDto>> GetAllAsync(CourseParams courseParams)
     {
-        var query= context.Courses.Include(x => x.Instructor).Include(x => x.Category).Select(x => x.ToDto());
-        var response=await PagedList<CourseDto>.ToPagedList(query,paginationParams.PageNumber,paginationParams.PageSize);
+        var query= context.Courses
+        .Where(x=>string.IsNullOrEmpty(courseParams.Search) 
+                        || x.Title.ToLower().Contains(courseParams.Search.ToLower()) 
+                        || x.Description.ToLower().Contains(courseParams.Search.ToLower()))
+                    .Include(x => x.Instructor)
+                    .Include(x => x.Category)
+                    .Select(x => x.ToDto());
+        
+        if(courseParams.CategoryId.HasValue)
+            query=query.Where(x=>x.CategoryId==courseParams.CategoryId);
+
+        if(!string.IsNullOrEmpty(courseParams.Language)) query=query.Where(x=>x.Language.ToLower()==courseParams.Language.ToLower());
+
+        if(courseParams.MinPrice.HasValue) query=query.Where(x=>x.Price>=courseParams.MinPrice);
+        if(courseParams.MaxPrice.HasValue) query=query.Where(x=>x.Price<=courseParams.MaxPrice);
+        if(courseParams.MinDuration.HasValue) query=query.Where(x=>x.Duration>=courseParams.MinDuration);
+        if(courseParams.MaxDuration.HasValue) query=query.Where(x=>x.Duration<=courseParams.MaxDuration);
+        query=courseParams.SortBy?.ToLower() switch
+        {
+            "price"=>query.OrderBy(x=>x.Price),
+            "price_desc"=>query.OrderByDescending(x=>x.Price),
+            "title"=>query.OrderBy(x=>x.Title),
+            "duration"=>query.OrderBy(x=>x.Duration),
+            _=>query.OrderBy(x=>x.Title),
+        };
+        var response=await PagedList<CourseDto>.ToPagedList(query,courseParams.PageNumber,courseParams.PageSize);
         return response;
     }
 

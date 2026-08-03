@@ -10,9 +10,9 @@ namespace LearnHubApi.Controllers;
 public class ReviewsController(IReviewService reviewService) : BaseApiController
 {
     [HttpGet("course/{courseId:int}")]
-    public async Task<ActionResult<IEnumerable<ReviewDto>>> GetReviewsByCourseAsync(int courseId,PaginationParams paginationParams)
+    public async Task<ActionResult<IEnumerable<ReviewDto>>> GetReviewsByCourseAsync(int courseId,CourseParams courseParams)
     {
-        var reviews=await reviewService.GetByCourseAsync(courseId,paginationParams);
+        var reviews=await reviewService.GetByCourseAsync(courseId,courseParams);
         Response.AddPaginationHeader(reviews.paginationMetaData);
         return Ok(reviews);
     }

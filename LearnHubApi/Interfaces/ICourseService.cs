@@ -5,7 +5,7 @@ namespace LearnHubApi.Interfaces;
 
 public interface ICourseService
 {
-    Task<PagedList<CourseDto>> GetAllAsync(PaginationParams paginationParams);
+    Task<PagedList<CourseDto>> GetAllAsync(CourseParams courseParams);
 
     Task<CourseDto> GetByIdAsync(int id);
 
