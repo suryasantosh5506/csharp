@@ -1,4 +1,5 @@
 using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 
 namespace LearnHubApi.Extensions;
 
@@ -10,10 +11,29 @@ public static class SwaggerExtensions
 
         builder.Services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Title = "LearnHub API",
-                Version = "v1"
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter your JWT token."
+            });
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
             });
         });
     }

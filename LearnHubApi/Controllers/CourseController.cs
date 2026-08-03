@@ -26,7 +26,7 @@ public class CoursesController(ICourseService courseService) : BaseApiController
 
     [Authorize(Roles = "Admin,Instructor")]
     [HttpPost]
-    public async Task<ActionResult<CourseDto>> CreateCourse(CreateCourseDto dto)
+    public async Task<ActionResult<CourseDto>> CreateCourse([FromForm]CreateCourseDto dto)
     {
         var course = await courseService.CreateAsync(dto);
 
@@ -39,7 +39,7 @@ public class CoursesController(ICourseService courseService) : BaseApiController
 
     [Authorize(Roles = "Admin,Instructor")]
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<CourseDto>> UpdateCourse(int id, UpdateCourseDto dto)
+    public async Task<ActionResult<CourseDto>> UpdateCourse(int id,[FromForm] UpdateCourseDto dto)
     {
         var course = await courseService.UpdateAsync(id, dto);
         return Ok(course);
