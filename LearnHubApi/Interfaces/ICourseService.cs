@@ -1,10 +1,11 @@
 using LearnHubApi.Dtos.Courses;
+using LearnHubApi.RequestHelpers;
 
 namespace LearnHubApi.Interfaces;
 
 public interface ICourseService
 {
-    Task<IEnumerable<CourseDto>> GetAllAsync();
+    Task<PagedList<CourseDto>> GetAllAsync(PaginationParams paginationParams);
 
     Task<CourseDto> GetByIdAsync(int id);
 

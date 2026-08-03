@@ -5,6 +5,7 @@ using LearnHubApi.Enums;
 using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
+using LearnHubApi.RequestHelpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearnHubApi.Services;
@@ -78,13 +79,11 @@ public class CourseService(AppDbContext context, ICurrentUserService userService
         await context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<CourseDto>> GetAllAsync()
+    public async Task<PagedList<CourseDto>> GetAllAsync(PaginationParams paginationParams)
     {
-        return await context.Courses
-            .Include(x => x.Instructor)
-            .Include(x => x.Category)
-            .Select(x => x.ToDto())
-            .ToListAsync();
+        var query= context.Courses.Include(x => x.Instructor).Include(x => x.Category).Select(x => x.ToDto());
+        var response=await PagedList<CourseDto>.ToPagedList(query,paginationParams.PageNumber,paginationParams.PageSize);
+        return response;
     }
 
     public async Task<CourseDto> GetByIdAsync(int id)

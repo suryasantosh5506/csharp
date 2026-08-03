@@ -1,5 +1,7 @@
 using LearnHubApi.Dtos.Courses;
+using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
+using LearnHubApi.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,9 +10,10 @@ namespace LearnHubApi.Controllers;
 public class CoursesController(ICourseService courseService) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
+    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses([FromQuery]PaginationParams paginationParams)
     {
-        var courses = await courseService.GetAllAsync();
+        var courses = await courseService.GetAllAsync(paginationParams);
+        Response.AddPaginationHeader(courses.paginationMetaData);
         return Ok(courses);
     }
 

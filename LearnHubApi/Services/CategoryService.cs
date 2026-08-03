@@ -4,6 +4,7 @@ using LearnHubApi.Entities;
 using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
+using LearnHubApi.RequestHelpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearnHubApi.Services;
@@ -47,9 +48,11 @@ public class CategoryService(AppDbContext context) : ICategoryService
         await context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<CategoryDto>> GetAllAsync()
+    public async Task<PagedList<CategoryDto>> GetAllAsync(PaginationParams paginationParams)
     {
-        return await context.Categories.Select(x => x.ToDto()).ToListAsync();
+        var query=context.Categories.Select(x => x.ToDto());
+        var response=await PagedList<CategoryDto>.ToPagedList(query,paginationParams.PageNumber,paginationParams.PageSize);
+        return response;
     }
 
     public async Task<CategoryDto> GetByIdAsync(int id)

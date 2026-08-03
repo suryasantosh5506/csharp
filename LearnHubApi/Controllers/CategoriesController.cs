@@ -1,5 +1,7 @@
 using LearnHubApi.Dtos.Category;
+using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
+using LearnHubApi.RequestHelpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LearnHubApi.Controllers;
@@ -7,9 +9,10 @@ namespace LearnHubApi.Controllers;
 public class CategoriesController(ICategoryService categoryService) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
+    public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories([FromQuery]PaginationParams paginationParams)
     {
-        var categories = await categoryService.GetAllAsync();
+        var categories = await categoryService.GetAllAsync(paginationParams);
+        Response.AddPaginationHeader(categories.paginationMetaData);
         return Ok(categories);
     }
 

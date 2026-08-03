@@ -4,6 +4,7 @@ using LearnHubApi.Entities;
 using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
+using LearnHubApi.RequestHelpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearnHubApi.Services;
@@ -64,12 +65,15 @@ public class EnrollmentService(AppDbContext context,ICurrentUserService userServ
         return enrollment.ToDto();
     }
 
-    public async Task<IEnumerable<EnrollmentDto>> GetMyEnrollmentsAsync()
+    public async Task<PagedList<EnrollmentDto>> GetMyEnrollmentsAsync(PaginationParams paginationParams)
     {
         if (!userService.IsAuthenticated)
         {
             throw new UnauthorizedException("Unauthorized");
         }
-        return await context.Enrollments.Where(x=>x.StudentId==userService.UserId).Include(x=>x.Course).Include(x=>x.Student).Select(x=>x.ToDto()).OrderByDescending(x => x.EnrolledAt).ToListAsync();
+        var query=context.Enrollments.Where(x=>x.StudentId==userService.UserId).Include(x=>x.Course).Include(x=>x.Student)
+                                        .Select(x=>x.ToDto()).OrderByDescending(x => x.EnrolledAt);
+        var response=await PagedList<EnrollmentDto>.ToPagedList(query,paginationParams.PageNumber,paginationParams.PageSize);
+        return response;
     }
 }

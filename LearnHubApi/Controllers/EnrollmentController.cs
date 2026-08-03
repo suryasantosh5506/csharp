@@ -1,5 +1,7 @@
 using LearnHubApi.Dtos.Enrollments;
+using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
+using LearnHubApi.RequestHelpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +11,11 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : BaseA
 {
     [Authorize]
     [HttpGet("my")]
-    public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetMyEnrollmentsAsync()
+    public async Task<ActionResult<IEnumerable<EnrollmentDto>>> GetMyEnrollmentsAsync(PaginationParams paginationParams)
     {
-        return Ok(await enrollmentService.GetMyEnrollmentsAsync());
+        var enrollments=await enrollmentService.GetMyEnrollmentsAsync(paginationParams);
+        Response.AddPaginationHeader(enrollments.paginationMetaData);
+        return Ok(enrollments);
     }
 
     [Authorize]

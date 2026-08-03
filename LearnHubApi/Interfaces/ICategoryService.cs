@@ -1,10 +1,11 @@
 using LearnHubApi.Dtos.Category;
+using LearnHubApi.RequestHelpers;
 
 namespace LearnHubApi.Interfaces;
 
 public interface ICategoryService
 {
-    Task<IEnumerable<CategoryDto>> GetAllAsync();
+    Task<PagedList<CategoryDto>> GetAllAsync(PaginationParams paginationParams);
 
     Task<CategoryDto> GetByIdAsync(int id);
 

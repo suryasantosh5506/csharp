@@ -5,6 +5,7 @@ using LearnHubApi.Enums;
 using LearnHubApi.Exceptions;
 using LearnHubApi.Extensions;
 using LearnHubApi.Interfaces;
+using LearnHubApi.RequestHelpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearnHubApi.Services;
@@ -65,14 +66,17 @@ public class ReviewService(ICurrentUserService userService,AppDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<ReviewDto>> GetByCourseAsync(int courseId)
+    public async Task<PagedList<ReviewDto>> GetByCourseAsync(int courseId,PaginationParams paginationParams)
     {
         if(!await context.Courses.AnyAsync(x=>x.Id==courseId))
         {
             throw new NotFoundException("Course not found");
         }
-        return await context.Reviews.Where(x=>x.CourseId==courseId).OrderByDescending(x => x.CreatedAt).Include(x=>x.Course)
-                                    .Include(x=>x.Author).Select(x=>x.ToDto()).ToListAsync();
+        var query=context.Reviews.Where(x=>x.CourseId==courseId).OrderByDescending(x => x.CreatedAt).Include(x=>x.Course)
+                                    .Include(x=>x.Author).Select(x=>x.ToDto());
+
+        var response=await PagedList<ReviewDto>.ToPagedList(query,paginationParams.PageNumber,paginationParams.PageSize);
+        return response;
     }
 
     public async Task<ReviewDto> UpdateAsync(int id, UpdateReviewDto dto)

@@ -1,10 +1,11 @@
 using LearnHubApi.Dtos.Reviews;
+using LearnHubApi.RequestHelpers;
 
 namespace LearnHubApi.Interfaces;
 
 public interface IReviewService
 {
-    Task<IEnumerable<ReviewDto>> GetByCourseAsync(int courseId);
+    Task<PagedList<ReviewDto>> GetByCourseAsync(int courseId,PaginationParams paginationParams);
 
     Task<ReviewDto> CreateAsync(CreateReviewDto dto);
 
