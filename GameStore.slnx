@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="GameStore.Api/GameStore.Api.csproj" />
   <Project Path="HospitalManagementAPI/HospitalManagementAPI.csproj" />
+  <Project Path="JobPortal/JobPortal.csproj" />
   <Project Path="JwtAuth/JwtAuth.csproj" />
   <Project Path="LearnHubApi/LearnHubApi.csproj" />
   <Project Path="LibraryManagementAPI/LibraryManagementAPI.csproj" />
