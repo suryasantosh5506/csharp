@@ -8,6 +8,6 @@ public class Company
     public required string Website{get;set;}
     public required string LogoUrl{get;set;}
     public int UserId{get;set;}
-    public required User User{get;set;}
+    public User User{get;set;}=null!;
     public ICollection<Job> Jobs{get;set;} =[];
 }
