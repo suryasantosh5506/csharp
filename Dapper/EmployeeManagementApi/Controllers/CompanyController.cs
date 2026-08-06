@@ -44,4 +44,11 @@ public class CompanyController(ICompanyService companyService) : BaseApiControll
         await companyService.DeleteCompanyAsync(id);
         return NoContent();
     }
+
+    [HttpGet("{id:int}/details")]
+    public async Task<ActionResult<CompanyDetailsDto>> GetCompanyDetails(int id)
+    {
+        var company = await companyService.GetCompanyDetailsAsync(id);
+        return Ok(company);
+    }
 }

@@ -6,6 +6,7 @@ using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Extensions;
 using EmployeeManagementApi.Interfaces;
 using Microsoft.AspNetCore.Routing.Constraints;
+using Microsoft.VisualBasic;
 
 namespace EmployeeManagementApi.Services;
 
@@ -56,6 +57,42 @@ public class CompanyService(EmployeeContext context) : ICompanyService
         return company.ToDto();
     }
 
+    public async Task<CompanyDetailsDto> GetCompanyDetailsAsync(int id)
+    {
+        using var connection=context.GetConnection();
+        var query=@"select c.*,d.*
+                from Company c left join Department d
+                on c.Id=d.companyId
+                where c.Id=@id";
+        Dictionary<int,Company>companies=[];
+        await connection.QueryAsync<Company,Department,Company>(query,
+        (company, department) =>
+        {
+            if(!companies.TryGetValue(company.Id,out var existingCompany))
+            {
+                existingCompany=company;
+                existingCompany.Departments=[];
+                existingCompany.Employees=[];
+                companies.Add(existingCompany.Id,existingCompany);
+            }
+            if (department is not null && !existingCompany.Departments.Any(x => x.Id == department.Id))
+            {
+                existingCompany.Departments.Add(department);
+            }
+            return existingCompany;
+        },
+        new {id=id},
+        splitOn:"Id"
+        );
+
+        if(companies.Count==0) throw new NotFoundException("Company not found");
+        Company company=companies.Values.First();
+        return new CompanyDetailsDto(company.Id,
+                company.Name,
+                company.Email,
+                company.Phone,
+                company.Departments.Select(x=>x.ToDto()).ToList());
+    } 
     public async Task<bool> UpdateCompanyAsync(int id, UpdateCompanyDto updateCompanyDto)
     {
         using var connection=context.GetConnection();
