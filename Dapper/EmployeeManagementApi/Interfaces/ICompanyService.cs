@@ -15,4 +15,6 @@ public interface ICompanyService
     Task<bool> DeleteCompanyAsync(int id);
 
     Task<CompanyDetailsDto> GetCompanyDetailsAsync(int id);
+
+    Task<CompanyCompleteDto> GetCompanyCompleteAsync(int id);
 }

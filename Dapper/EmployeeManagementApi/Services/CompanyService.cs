@@ -1,6 +1,8 @@
 using Dapper;
 using EmployeeManagementApi.Data;
 using EmployeeManagementApi.Dtos.Company;
+using EmployeeManagementApi.Dtos.Department;
+using EmployeeManagementApi.Dtos.Employee;
 using EmployeeManagementApi.Entities;
 using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Extensions;
@@ -103,5 +105,68 @@ public class CompanyService(EmployeeContext context) : ICompanyService
         int rowsaffected=await connection.ExecuteAsync(updatequery,new {name=updateCompanyDto.Name,email=updateCompanyDto.Email,phone=updateCompanyDto.Phone,id=id});
         if(rowsaffected==0) throw new Exception("Internal Server Issue");
         return true;
+    }
+
+    public async Task<CompanyCompleteDto> GetCompanyCompleteAsync(int id)
+    {
+        using var connection=context.GetConnection();
+        var query=@"select c.*,d.*,e.*,a.* from
+                    Company c left join Department d
+                    on c.Id=d.CompanyId
+                    left join Employee e
+                    on d.Id=e.DepartmentId
+                    left join address a
+                    on e.Id=a.EmployeeId
+                    where c.Id=@id";
+        
+        Dictionary<int,Company>companiesDict=[]; 
+        Dictionary<int,Department>departmentsDict=[]; 
+        await connection.QueryAsync<Company,Department,Employee,Address,Company>( 
+            query, 
+            (company, department, employee, address) => { 
+                if(!companiesDict.TryGetValue(company.Id,out var existingCompany)) { 
+                    existingCompany=company; existingCompany.Departments=[]; 
+                    companiesDict.Add(company.Id,existingCompany); 
+                }
+
+                if (department.Id != 0 && !existingCompany.Departments.Any(x => x.Id == department.Id)) { 
+                    existingCompany.Departments.Add(department); 
+                }
+
+                if(!departmentsDict.TryGetValue(department.Id,out var existingDepartment)) { 
+                    existingDepartment=department; 
+                    existingDepartment.Employees=[]; 
+                    departmentsDict.Add(department.Id,existingDepartment); 
+                } 
+                
+                if (employee.Id != 0 && !existingDepartment.Employees.Any(x => x.Id == employee.Id)) { 
+                    existingDepartment.Employees.Add(employee);
+                } 
+                
+                if(address is not null) { 
+                    employee.Address=address; 
+                } 
+                return existingCompany; 
+                }, 
+                new {id=id}, 
+                splitOn:"Id,Id,Id" 
+        );
+
+        if(companiesDict.Count==0) throw new NotFoundException("comapny not found");
+        var company=companiesDict.Values.First();
+        var departments=departmentsDict.Values.ToList();
+
+        var deptCompleteDto=departments.Select(x=>
+                        new DepartmentCompleteDto(x.Id,x.Name,x.Employees
+                        .Select(emp=>new EmployeeDetailsDto(emp.Id,emp.Name,emp.Email,emp.Phone,emp.CompanyId,emp.DepartmentId,emp.Address?.ToDto())).ToList()
+                        )).ToList();
+
+        return new CompanyCompleteDto(
+            company.Id,
+            company.Name,
+            company.Email,
+            company.Phone,
+            deptCompleteDto
+        );
     }
 }
