@@ -1,10 +1,11 @@
 using EmployeeManagementApi.Dtos.Employee;
 using EmployeeManagementApi.Dtos.Transactions;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 
 namespace EmployeeManagementApi.Interfaces;
 public interface IEmployeeService
 {
-    Task<IEnumerable<EmployeeDto>> GetAllEmployeesAsync(int departmentId);
+    Task<PagedList<EmployeeDto>> GetAllEmployeesAsync(int departmentId,PaginationParams paginationParams);
 
     Task<EmployeeDto?> GetEmployeeByIdAsync(int id);
 

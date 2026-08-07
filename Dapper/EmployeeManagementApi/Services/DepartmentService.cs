@@ -5,6 +5,7 @@ using EmployeeManagementApi.Entities;
 using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Extensions;
 using EmployeeManagementApi.Interfaces;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeManagementApi.Services;
@@ -41,14 +42,16 @@ public class DepartmentService(EmployeeContext context) : IDepartmentService
         return true;
     }
 
-    public async Task<IEnumerable<DepartmentDto>> GetAllDepartmentsAsync(int companyId)
+    public async Task<PagedList<DepartmentDto>> GetAllDepartmentsAsync(int companyId,PaginationParams paginationParams)
     {
         using var connection=context.GetConnection();
         var companyquery="Select * from company where id=@id";
-        var company=await connection.QueryFirstOrDefaultAsync<Company>(companyquery,new{id=companyId});
+        var queryParams=new{id=companyId,limit=paginationParams.PageSize,skip=(paginationParams.PageNumber-1)*paginationParams.PageSize};
+        var company=await connection.QueryFirstOrDefaultAsync<Company>(companyquery,new {id=companyId});
         if(company is null) throw new NotFoundException("Company not found");
-        var departments=await connection.QueryAsync<Department>("Select * from department where companyId=@companyId",new {companyId=companyId});
-        return departments.Select(x=>x.ToDto());
+        int count=await connection.ExecuteScalarAsync<int>("select count(*) from department where companyId=@id",new{id=companyId});
+        var departments=await connection.QueryAsync<Department>("Select * from department where companyId=@id limit @limit offset @skip",queryParams);
+        return PagedList<DepartmentDto>.ToPagedList(departments.Select(x=>x.ToDto()),count,paginationParams.PageNumber,paginationParams.PageSize);
     }
 
     public async Task<DepartmentDto?> GetDepartmentByIdAsync(int id)

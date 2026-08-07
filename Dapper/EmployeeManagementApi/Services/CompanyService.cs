@@ -7,6 +7,7 @@ using EmployeeManagementApi.Entities;
 using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Extensions;
 using EmployeeManagementApi.Interfaces;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.VisualBasic;
 
@@ -42,12 +43,14 @@ public class CompanyService(EmployeeContext context) : ICompanyService
         return true;
     }
 
-    public async Task<IEnumerable<CompanyDto>> GetAllCompaniesAsync()
+    public async Task<PagedList<CompanyDto>> GetAllCompaniesAsync(PaginationParams paginationParams)
     {
         using var connection=context.GetConnection();
-        var selecetQuery="Select * from Company";
-        var companies=await connection.QueryAsync<Company>(selecetQuery);
-        return companies.Select(x=>x.ToDto());
+        var selecetQuery="Select * from Company limit @limit offset @skip";
+        var queryParams=new{limit=paginationParams.PageSize,skip=(paginationParams.PageNumber-1)*paginationParams.PageSize};
+        var companies=await connection.QueryAsync<Company>(selecetQuery,queryParams);
+        int count=await connection.ExecuteScalarAsync<int>("Select count(*) from Company");
+        return PagedList<CompanyDto>.ToPagedList(companies.Select(x=>x.ToDto()),count,paginationParams.PageNumber,paginationParams.PageSize);
     }
 
     public async Task<CompanyDto?> GetCompanyByIdAsync(int id)

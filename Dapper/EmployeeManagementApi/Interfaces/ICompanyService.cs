@@ -1,10 +1,11 @@
 using EmployeeManagementApi.Dtos.Company;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 
 namespace EmployeeManagementApi.Interfaces;
 
 public interface ICompanyService
 {
-    Task<IEnumerable<CompanyDto>> GetAllCompaniesAsync();
+    Task<PagedList<CompanyDto>> GetAllCompaniesAsync(PaginationParams paginationParams);
 
     Task<CompanyDto?> GetCompanyByIdAsync(int id);
 

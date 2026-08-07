@@ -1,10 +1,11 @@
 using EmployeeManagementApi.Dtos.Department;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 
 namespace EmployeeManagementApi.Interfaces;
 
 public interface IDepartmentService
 {
-    Task<IEnumerable<DepartmentDto>> GetAllDepartmentsAsync(int companyId);
+    Task<PagedList<DepartmentDto>> GetAllDepartmentsAsync(int companyId,PaginationParams paginationParams);
 
     Task<DepartmentDto?> GetDepartmentByIdAsync(int id);
 

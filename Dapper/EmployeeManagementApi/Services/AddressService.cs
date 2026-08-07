@@ -5,6 +5,7 @@ using EmployeeManagementApi.Dtos.Address;
 using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Interfaces;
 using EmployeeManagementApi.Extensions;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 
 namespace EmployeeManagementApi.Services;
 
@@ -72,12 +73,14 @@ public class AddressService(EmployeeContext context) : IAddressService
         return address.ToDto();
     }
 
-    public async Task<IEnumerable<AddressDto>> GetAllAddressAsync()
+    public async Task<PagedList<AddressDto>> GetAllAddressAsync(PaginationParams paginationParams)
     {
         using var connection=context.GetConnection();
-        var selectQuery="Select * from address";
-        var addresses=await connection.QueryAsync<Address>(selectQuery);
-        return addresses.Select(x=>x.ToDto());
+        var selectQuery="Select * from address limit @limit offset @skip";
+        int count=await connection.ExecuteScalarAsync<int>("select count(*) from Address");
+        var queryParams=new{limit=paginationParams.PageSize,skip=(paginationParams.PageNumber-1)*paginationParams.PageSize};
+        var addresses=await connection.QueryAsync<Address>(selectQuery,queryParams);
+        return PagedList<AddressDto>.ToPagedList(addresses.Select(x=>x.ToDto()),count,paginationParams.PageNumber,paginationParams.PageSize);
     }
 
     public async Task<bool> UpdateAddressAsync(int id,UpdateAddressDto dto)

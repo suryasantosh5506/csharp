@@ -1,5 +1,6 @@
 using EmployeeManagementApi.Dtos.Address;
 using EmployeeManagementApi.Interfaces;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeManagementApi.Controllers;
@@ -7,9 +8,9 @@ namespace EmployeeManagementApi.Controllers;
 public class AddressController(IAddressService addressService) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AddressDto>>> GetAddresses()
+    public async Task<ActionResult<PagedList<AddressDto>>> GetAddresses([FromQuery]PaginationParams paginationParams)
     {
-        var addresses = await addressService.GetAllAddressAsync();
+        var addresses = await addressService.GetAllAddressAsync(paginationParams);
         return Ok(addresses);
     }
 

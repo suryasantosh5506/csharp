@@ -1,5 +1,6 @@
 using EmployeeManagementApi.Dtos.Department;
 using EmployeeManagementApi.Interfaces;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeManagementApi.Controllers;
@@ -8,9 +9,9 @@ public class DepartmentController(IDepartmentService departmentService)
     : BaseApiController
 {
     [HttpGet("company/{companyId:int}")]
-    public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetDepartments(int companyId)
+    public async Task<ActionResult<PagedList<DepartmentDto>>> GetDepartments(int companyId,[FromQuery]PaginationParams paginationParams)
     {
-        var departments = await departmentService.GetAllDepartmentsAsync(companyId);
+        var departments = await departmentService.GetAllDepartmentsAsync(companyId,paginationParams);
         return Ok(departments);
     }
 

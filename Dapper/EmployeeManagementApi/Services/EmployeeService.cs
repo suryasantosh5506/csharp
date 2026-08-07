@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using Dapper;
 using EmployeeManagementApi.Data;
 using EmployeeManagementApi.Dtos.Address;
@@ -8,6 +9,7 @@ using EmployeeManagementApi.Entities;
 using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Extensions;
 using EmployeeManagementApi.Interfaces;
+using EmployeeManagementApi.RequestHelpers.Pagination;
 
 namespace EmployeeManagementApi.Services;
 
@@ -43,15 +45,20 @@ public class EmployeeService(EmployeeContext context) : IEmployeeService
         if(rowsaffected==0) throw new Exception("Internal Server Error");
         return true;
     }
-
-    public async Task<IEnumerable<EmployeeDto>> GetAllEmployeesAsync(int departmentId)
+    
+    public async Task<PagedList<EmployeeDto>> GetAllEmployeesAsync(int departmentId,PaginationParams paginationParams)
     {
         using var connection=context.GetConnection();
         var departmentQuery="select id from department where id=@did";
         int? dId=await connection.QueryFirstOrDefaultAsync<int?>(departmentQuery,new {did=departmentId});
         if(dId is null) throw new NotFoundException("Department not found");
-        var employees=await connection.QueryAsync<Employee>("Select * from Employee where departmentId=@did",new{did=departmentId});
-        return employees.Select(x=>x.ToDto());
+        StringBuilder query=new StringBuilder();
+        query.Append("Select * from Employee where departmentId=@did ");
+        query.Append("Limit @limit Offset @skip");
+        var queryparams=new{did=departmentId,limit=paginationParams.PageSize,skip=(paginationParams.PageNumber-1)*paginationParams.PageSize};
+        var employees=await connection.QueryAsync<Employee>(query.ToString(),queryparams);
+        int count=await connection.ExecuteScalarAsync<int>("Select count(*) from Employee where departmentId=@id",new{id=departmentId});
+        return PagedList<EmployeeDto>.ToPagedList(employees.Select(x=>x.ToDto()),count,paginationParams.PageNumber,paginationParams.PageSize);
     }
 
     public async Task<EmployeeDto?> GetEmployeeByIdAsync(int id)
