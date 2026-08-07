@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EmployeeManagementApi.Dtos.Address;
 using EmployeeManagementApi.Entities;
 
 namespace EmployeeManagementApi.Dtos.Employee;
@@ -10,5 +11,5 @@ public record EmployeeDetailsDto(
     string Phone,
     int CompanyId,
     int DepartmentId,
-    Address Address
+    AddressDto Address
 );
