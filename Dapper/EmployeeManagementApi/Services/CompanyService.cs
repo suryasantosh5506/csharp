@@ -129,27 +129,29 @@ public class CompanyService(EmployeeContext context) : ICompanyService
                     companiesDict.Add(company.Id,existingCompany); 
                 }
 
-                if (department.Id != 0 && !existingCompany.Departments.Any(x => x.Id == department.Id)) { 
-                    existingCompany.Departments.Add(department); 
-                }
+                if (department.Id != 0)
+                {
+                    if(!departmentsDict.TryGetValue(department.Id,out var existingDepartment)) { 
+                        existingDepartment=department; 
+                        existingDepartment.Employees=[]; 
+                        departmentsDict.Add(department.Id,existingDepartment); 
+                    } 
 
-                if(!departmentsDict.TryGetValue(department.Id,out var existingDepartment)) { 
-                    existingDepartment=department; 
-                    existingDepartment.Employees=[]; 
-                    departmentsDict.Add(department.Id,existingDepartment); 
-                } 
-                
-                if (employee.Id != 0 && !existingDepartment.Employees.Any(x => x.Id == employee.Id)) { 
-                    existingDepartment.Employees.Add(employee);
-                } 
-                
-                if(address is not null) { 
-                    employee.Address=address; 
+                    if (!existingCompany.Departments.Any(x => x.Id == existingDepartment.Id)) { 
+                        existingCompany.Departments.Add(existingDepartment); 
+                    }
+                    
+                    if (employee.Id != 0 && !existingDepartment.Employees.Any(x => x.Id == employee.Id)) { 
+                        existingDepartment.Employees.Add(employee);
+                        if(address is not null) { 
+                            employee.Address=address; 
+                        }
+                    }
                 } 
                 return existingCompany; 
                 }, 
-                new {id=id}, 
-                splitOn:"Id,Id,Id" 
+            new {id=id}, 
+            splitOn:"Id,Id,Id" 
         );
 
         if(companiesDict.Count==0) throw new NotFoundException("comapny not found");
