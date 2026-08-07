@@ -36,3 +36,41 @@ C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\EmployeeManagementApi\bin\Deb
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\EmployeeManagementApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\EmployeeManagementApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\appsettings.Development.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\appsettings.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\EmployeeManagementApi.staticwebassets.endpoints.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\EmployeeManagementApi.exe
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\EmployeeManagementApi.deps.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\EmployeeManagementApi.runtimeconfig.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\EmployeeManagementApi.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\EmployeeManagementApi.pdb
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\Dapper.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\Microsoft.OpenApi.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\MySqlConnector.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.csproj.AssemblyReference.cache
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.AssemblyInfoInputs.cache
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.AssemblyInfo.cs
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.csproj.CoreCompileInputs.cache
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.sourcelink.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\rjimswa.dswa.cache.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\scopedcss\bundle\EmployeeManagementApi.styles.css
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\staticwebassets.build.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\staticwebassets.build.json.cache
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\staticwebassets.development.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\staticwebassets.build.endpoints.json
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\swae.build.ex.cache
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\Employee.8111CD9B.Up2Date
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\refint\EmployeeManagementApi.dll
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.pdb
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\EmployeeManagementApi.genruntimeconfig.cache
+C:\Users\Santosh\OneDrive\Desktop\c#\csharp\Dapper\EmployeeManagementApi\obj\Debug\net10.0\ref\EmployeeManagementApi.dll
