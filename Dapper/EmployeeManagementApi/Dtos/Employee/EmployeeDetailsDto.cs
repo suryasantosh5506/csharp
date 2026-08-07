@@ -11,5 +11,5 @@ public record EmployeeDetailsDto(
     string Phone,
     int CompanyId,
     int DepartmentId,
-    AddressDto Address
+    AddressDto? Address
 );

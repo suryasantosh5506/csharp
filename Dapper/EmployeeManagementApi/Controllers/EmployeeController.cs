@@ -44,4 +44,11 @@ public class EmployeeController(IEmployeeService employeeService) : BaseApiContr
         await employeeService.DeleteEmployeeAsync(id);
         return NoContent();
     }
+
+    [HttpGet("{id:int}/details")]
+    public async Task<ActionResult<EmployeeDetailsDto>> GetEmployeeDetails(int id)
+    {
+        var employee = await employeeService.GetEmployeeDetailsAsync(id);
+        return Ok(employee);
+    }
 }

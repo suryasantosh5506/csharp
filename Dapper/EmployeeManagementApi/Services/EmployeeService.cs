@@ -81,4 +81,39 @@ public class EmployeeService(EmployeeContext context) : IEmployeeService
         if(rowsaffected==0) throw new Exception("Internal Server Error");
         return true;
     }
+
+    public async Task<EmployeeDetailsDto> GetEmployeeDetailsAsync(int id)
+    {
+        using var connection=context.GetConnection();
+        var query=@"Select e.*,a.* from
+                    Employee e left join Address a
+                    on e.Id=a.EmployeeId
+                    where e.id=@id";
+        var employees=(await connection.QueryAsync<Employee,Address,Employee>(
+            query,
+            (emp, add) =>
+            {
+                if(add is not null)
+                {
+                    emp.Address=add;
+                }
+                return emp;
+            },
+            new {id=id},
+            splitOn:"Id"
+        )).ToList();
+        
+
+        if(employees.Count==0) throw new NotFoundException("Employee not found");
+        var employee=employees[0];
+        return new EmployeeDetailsDto(
+            employee.Id,
+            employee.Name,
+            employee.Email,
+            employee.Phone,
+            employee.CompanyId,
+            employee.DepartmentId,
+            employee.Address?.ToDto()
+        );
+    }
 }
