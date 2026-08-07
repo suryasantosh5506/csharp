@@ -13,4 +13,6 @@ public interface IDepartmentService
     Task<bool> UpdateDepartmentAsync(int id, UpdateDepartmentDto dto);
 
     Task<bool> DeleteDepartmentAsync(int id);
+
+    Task<DepartmentDetailsDto> GetDepartmentDetailsAsync(int id);
 }

@@ -60,6 +60,7 @@ public class DepartmentService(EmployeeContext context) : IDepartmentService
         return department.ToDto();
     }
 
+
     public async Task<bool> UpdateDepartmentAsync(int id, UpdateDepartmentDto dto)
     {
         using var connection=context.GetConnection();
@@ -77,5 +78,40 @@ public class DepartmentService(EmployeeContext context) : IDepartmentService
         int rowsaffected=await connection.ExecuteAsync(updatequery,new{name=dto.Name,companyId=dto.CompanyId,id=id});
         if(rowsaffected==0) throw new Exception("Internal Server Error");
         return true;
+    }
+
+    public async Task<DepartmentDetailsDto> GetDepartmentDetailsAsync(int id)
+    {
+        using var connection=context.GetConnection();
+        var query=@"select d.*,e.* from
+                    department d left join Employee e
+                    on d.Id=e.departmentId
+                    where d.Id=@id";
+        
+        Dictionary<int,Department>departments=[];
+        await connection.QueryAsync<Department,Employee,Department>(
+            query,
+            (dept, emp) =>
+            {
+                if(!departments.TryGetValue(dept.Id,out var existingDepartment))
+                {   
+                    existingDepartment=dept;
+                    existingDepartment.Employees=[];
+                    departments.Add(dept.Id,existingDepartment);
+                }
+
+                if(emp is not null && !existingDepartment.Employees.Any(x => x.Email == emp.Email))
+                {
+                    existingDepartment.Employees.Add(emp);
+                }
+
+                return existingDepartment;
+            },
+            new {id=id},
+            splitOn:"Id"
+        );
+        if(departments.Count==0) throw new NotFoundException("Department not found");
+        var department=departments.Values.First();
+        return new DepartmentDetailsDto(department.Id,department.Name,department.CompanyId,department.Employees.Select(x=>x.ToDto()).ToList());
     }
 }

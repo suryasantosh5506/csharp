@@ -45,4 +45,11 @@ public class DepartmentController(IDepartmentService departmentService)
         await departmentService.DeleteDepartmentAsync(id);
         return NoContent();
     }
+
+    [HttpGet("{id:int}/details")]
+    public async Task<ActionResult<DepartmentDetailsDto>> GetDepartmentDetails(int id)
+    {
+        var department = await departmentService.GetDepartmentDetailsAsync(id);
+        return Ok(department);
+    }
 }
