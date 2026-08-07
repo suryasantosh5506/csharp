@@ -10,6 +10,7 @@ using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Extensions;
 using EmployeeManagementApi.Interfaces;
 using EmployeeManagementApi.RequestHelpers.Pagination;
+using EmployeeManagementApi.RequestHelpers.Search;
 
 namespace EmployeeManagementApi.Services;
 
@@ -46,19 +47,54 @@ public class EmployeeService(EmployeeContext context) : IEmployeeService
         return true;
     }
     
-    public async Task<PagedList<EmployeeDto>> GetAllEmployeesAsync(int departmentId,PaginationParams paginationParams)
+    public async Task<PagedList<EmployeeDto>> GetAllEmployeesAsync(int departmentId,EmployeeParams employeeParams)
     {
         using var connection=context.GetConnection();
         var departmentQuery="select id from department where id=@did";
         int? dId=await connection.QueryFirstOrDefaultAsync<int?>(departmentQuery,new {did=departmentId});
         if(dId is null) throw new NotFoundException("Department not found");
+
         StringBuilder query=new StringBuilder();
-        query.Append("Select * from Employee where departmentId=@did ");
-        query.Append("Limit @limit Offset @skip");
-        var queryparams=new{did=departmentId,limit=paginationParams.PageSize,skip=(paginationParams.PageNumber-1)*paginationParams.PageSize};
+        StringBuilder countQuery=new StringBuilder();
+
+        query.Append("select * from Employee where departmentId=@did ");
+        countQuery.Append("select count(*) from Employee where departmentId=@did ");
+
+        var queryparams=new
+        {
+            did=departmentId,
+            limit=employeeParams.PageSize,
+            skip=(employeeParams.PageNumber-1)*employeeParams.PageSize,
+            searchTerm=$"%{employeeParams.SearchTerm}%",
+        };
+
+        var order=(employeeParams.IsDescending)?"desc":"asc";
+
+        if(!string.IsNullOrEmpty(employeeParams.SearchTerm))
+        {
+            query.Append("and name like @searchTerm ");
+            countQuery.Append("and name like @searchTerm ");
+        }
+
+        if (!string.IsNullOrEmpty(employeeParams.SortBy))
+        {
+            query.Append(employeeParams.SortBy?.Trim()?.ToLower() switch
+            {
+                "name"=>$" order by name {order} ",
+                "email"=>$" order by email {order} ",
+                "phone"=>$"order by Phone {order} ",
+                _ =>$" order by id {order} "
+            });
+        }
+        else
+        {
+            query.Append($" order by id {order} ");
+        }
+
+        query.Append("limit @limit offset @skip");
         var employees=await connection.QueryAsync<Employee>(query.ToString(),queryparams);
-        int count=await connection.ExecuteScalarAsync<int>("Select count(*) from Employee where departmentId=@id",new{id=departmentId});
-        return PagedList<EmployeeDto>.ToPagedList(employees.Select(x=>x.ToDto()),count,paginationParams.PageNumber,paginationParams.PageSize);
+        int count=await connection.ExecuteScalarAsync<int>(countQuery.ToString(),queryparams);
+        return PagedList<EmployeeDto>.ToPagedList(employees.Select(x=>x.ToDto()),count,employeeParams.PageNumber,employeeParams.PageSize);
     }
 
     public async Task<EmployeeDto?> GetEmployeeByIdAsync(int id)
