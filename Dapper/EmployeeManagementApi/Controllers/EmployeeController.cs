@@ -1,4 +1,5 @@
 using EmployeeManagementApi.Dtos.Employee;
+using EmployeeManagementApi.Dtos.Transactions;
 using EmployeeManagementApi.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,5 +51,12 @@ public class EmployeeController(IEmployeeService employeeService) : BaseApiContr
     {
         var employee = await employeeService.GetEmployeeDetailsAsync(id);
         return Ok(employee);
+    }
+
+    [HttpPost("complete")]
+    public async Task<ActionResult<EmployeeDetailsDto>> CreateEmployeeWithAddress(CreateEmployeeWithAddressDto dto)
+    {
+        var employee = await employeeService.CreateEmployeeWithAddressAsync(dto);
+        return CreatedAtAction(nameof(GetEmployeeDetails), new { id = employee.Id }, employee);
     }
 }

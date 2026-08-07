@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using Dapper;
 using EmployeeManagementApi.Data;
+using EmployeeManagementApi.Dtos.Address;
 using EmployeeManagementApi.Dtos.Employee;
+using EmployeeManagementApi.Dtos.Transactions;
 using EmployeeManagementApi.Entities;
 using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Extensions;
@@ -115,5 +117,65 @@ public class EmployeeService(EmployeeContext context) : IEmployeeService
             employee.DepartmentId,
             employee.Address?.ToDto()
         );
+    }
+
+    public async Task<EmployeeDetailsDto> CreateEmployeeWithAddressAsync(CreateEmployeeWithAddressDto dto)
+    {
+        using var connection=context.GetConnection();
+        connection.Open();
+        using var transaction=connection.BeginTransaction();
+        try
+        {
+            string companyQuery="select id from company where id=@id";
+            int? cid=await connection.QueryFirstOrDefaultAsync<int?>(companyQuery,new {id=dto.Employee.CompanyId},transaction);
+            if(cid is null) throw new NotFoundException("company not found");
+            string deptQuery="Select id from department where id=@id and companyId=@cid";
+            int? deptid=await connection.QueryFirstOrDefaultAsync<int?>(deptQuery,new {id=dto.Employee.DepartmentId,cid=dto.Employee.CompanyId},transaction:transaction);
+            if(deptid is null) throw new NotFoundException("department not found");
+            string empQuery="Select id from employee where email=@email";
+            int? empId=await connection.QueryFirstOrDefaultAsync<int?>(empQuery,new {email=dto.Employee.Email},transaction:transaction);
+            if(empId is not null) throw new ConflictException("Employee already exists");
+            string insertQuery="insert into employee (name,email,phone,companyId,DepartmentId) values(@name,@email,@phone,@cid,@did)";
+            var queryparams=new{
+                name=dto.Employee.Name,
+                email=dto.Employee.Email,
+                phone=dto.Employee.Phone,
+                cid=dto.Employee.CompanyId,
+                did=dto.Employee.DepartmentId
+            };
+            int rowsaffected=await connection.ExecuteAsync(insertQuery,queryparams,transaction:transaction);
+            if(rowsaffected==0) throw new Exception("Internal Server Error");
+            empId=await connection.ExecuteScalarAsync<int>("select LAST_INSERT_ID()",transaction:transaction);
+
+            string addressquery="insert into address (EmployeeId,HouseNo,Street,City,State,Country,PostalCode) values (@EmployeeId,@HouseNo,@Street,@City,@State,@Country,@PostalCode)";
+            var insertparams = new
+            {
+                EmployeeId=empId,
+                HouseNo=dto.Address.HouseNo,
+                Street=dto.Address.Street,
+                City=dto.Address.City,
+                State=dto.Address.State,
+                Country=dto.Address.Country,
+                PostalCode=dto.Address.PostalCode
+            };
+            rowsaffected=await connection.ExecuteAsync(addressquery,insertparams,transaction:transaction);
+            if(rowsaffected==0) throw new Exception("Internal Server Error");
+            transaction.Commit();
+            var employee=await connection.QuerySingleAsync<Employee>("Select * from employee where id=@id",new{id=empId});
+            var address=await connection.QuerySingleAsync<Address>("Select * from address where employeeId=@id",new {id=empId});
+            return new EmployeeDetailsDto(
+                employee.Id,
+                employee.Name,
+                employee.Email,
+                employee.Phone,
+                employee.CompanyId,
+                employee.DepartmentId,
+                address?.ToDto()
+            );
+        }catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 }

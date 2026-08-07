@@ -1,4 +1,5 @@
 using EmployeeManagementApi.Dtos.Employee;
+using EmployeeManagementApi.Dtos.Transactions;
 
 namespace EmployeeManagementApi.Interfaces;
 public interface IEmployeeService
@@ -14,4 +15,6 @@ public interface IEmployeeService
     Task<bool> DeleteEmployeeAsync(int id);
 
     Task<EmployeeDetailsDto> GetEmployeeDetailsAsync(int id);
+
+    Task<EmployeeDetailsDto> CreateEmployeeWithAddressAsync(CreateEmployeeWithAddressDto dto);
 }
