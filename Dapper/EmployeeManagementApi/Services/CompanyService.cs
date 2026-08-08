@@ -1,3 +1,4 @@
+using System.Data;
 using Dapper;
 using EmployeeManagementApi.Data;
 using EmployeeManagementApi.Dtos.Company;
@@ -23,8 +24,7 @@ public class CompanyService(EmployeeContext context) : ICompanyService
         int? id=null;
         id=await connection.QuerySingleOrDefaultAsync<int?>(existingquery,new{email=createCompanyDto.Email});
         if(id is not null) throw new ConflictException("Company already exists");
-        string createQuery="Insert into Company (name,email,phone) Values(@name,@email,@phone)";
-        int rowsaffected=await connection.ExecuteAsync(createQuery,new {name=createCompanyDto.Name,email=createCompanyDto.Email,phone=createCompanyDto.Phone});
+        int rowsaffected=await connection.ExecuteAsync("CreateCompany",new {p_Name=createCompanyDto.Name,p_Email=createCompanyDto.Email,p_Phone=createCompanyDto.Phone},commandType: CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server Issue");
         Company company=await connection.QueryFirstAsync<Company>("Select * from Company where email=@email",new{email=createCompanyDto.Email});
         return company.ToDto();
@@ -37,8 +37,8 @@ public class CompanyService(EmployeeContext context) : ICompanyService
         int? existingid=null;
         existingid=await connection.QuerySingleOrDefaultAsync<int?>(existingquery,new{id=id});
         if(existingid is null) throw new NotFoundException("Company Not Found");
-        string deletequery="Delete from Company where Id=@id";
-        int rowsaffected=await connection.ExecuteAsync(deletequery,new{id=id});
+        
+        int rowsaffected=await connection.ExecuteAsync("DeleteCompany",new{p_Id=id},commandType: CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server Issue");
         return true;
     }
@@ -56,8 +56,7 @@ public class CompanyService(EmployeeContext context) : ICompanyService
     public async Task<CompanyDto?> GetCompanyByIdAsync(int id)
     {
         using var connection=context.GetConnection();
-        var selectQuery="Select * from Company where id=@id";
-        var company=await connection.QueryFirstOrDefaultAsync<Company>(selectQuery,new{id=id});
+        var company=await connection.QueryFirstOrDefaultAsync<Company>("GetCompanyById",new{CompanyId=id},commandType:CommandType.StoredProcedure);
         if(company is null) throw new NotFoundException("Company Not Found");
         return company.ToDto();
     }
@@ -104,8 +103,8 @@ public class CompanyService(EmployeeContext context) : ICompanyService
         string existquery="Select id from company where email=@email AND Id!=@id";
         var company=await connection.QueryFirstOrDefaultAsync<Company>(existquery,new {email=updateCompanyDto.Email,id=id});
         if(company is not null) throw new ConflictException("Company already exists");
-        var updatequery="Update company set Name=@name,Email=@email,Phone=@phone where id=@id";
-        int rowsaffected=await connection.ExecuteAsync(updatequery,new {name=updateCompanyDto.Name,email=updateCompanyDto.Email,phone=updateCompanyDto.Phone,id=id});
+        
+        int rowsaffected=await connection.ExecuteAsync("UpdateCompany",new {p_Name=updateCompanyDto.Name,p_Email=updateCompanyDto.Email,p_Phone=updateCompanyDto.Phone,p_Id=id},commandType: CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server Issue");
         return true;
     }

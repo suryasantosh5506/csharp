@@ -1,3 +1,4 @@
+using System.Data;
 using Dapper;
 using EmployeeManagementApi.Data;
 using EmployeeManagementApi.Dtos.Department;
@@ -22,8 +23,8 @@ public class DepartmentService(EmployeeContext context) : IDepartmentService
         var companyquery="Select * from company where id=@id";
         var company=await connection.QueryFirstOrDefaultAsync<Company>(companyquery,new{id=dto.CompanyId});
         if(company is null) throw new NotFoundException("Company not found");
-        var insertquery="insert into department (name,companyid) values (@name,@companyid)";
-        int rowsaffected=await connection.ExecuteAsync(insertquery,new {name=dto.Name,companyid=dto.CompanyId});
+        
+        int rowsaffected=await connection.ExecuteAsync("CreateDepartment",new {p_Name=dto.Name,p_CompanyId=dto.CompanyId},commandType: CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server Error");
         var department=await connection.QueryFirstAsync<Department>("Select * from department where companyid=@id and name=@name",new {id=dto.CompanyId,name=dto.Name});
         return department.ToDto();
@@ -36,8 +37,8 @@ public class DepartmentService(EmployeeContext context) : IDepartmentService
         int ?existingId=null;
         existingId=await connection.QueryFirstOrDefaultAsync<int?>(existquery,new{id=id});
         if(existingId is null) throw new NotFoundException("Department Not Found");
-        var deletequery="delete from department where id=@id";
-        int rowsaffected=await connection.ExecuteAsync(deletequery,new {id=id});
+        
+        int rowsaffected=await connection.ExecuteAsync("DeleteDepartment",new {p_Id=id},commandType: CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server Error");
         return true;
     }
@@ -56,9 +57,8 @@ public class DepartmentService(EmployeeContext context) : IDepartmentService
 
     public async Task<DepartmentDto?> GetDepartmentByIdAsync(int id)
     {
-        var departmentQuery="select * from department where id=@id";
         using var connection=context.GetConnection();
-        var department=await connection.QueryFirstOrDefaultAsync<Department>(departmentQuery,new {id=id});
+        var department=await connection.QueryFirstOrDefaultAsync<Department>("GetDepartmentById",new {DepartmentId=id},commandType:CommandType.StoredProcedure);
         if(department is null) throw new NotFoundException("department not found");
         return department.ToDto();
     }
@@ -77,8 +77,8 @@ public class DepartmentService(EmployeeContext context) : IDepartmentService
         int ?existId=null;
         existId=await connection.QueryFirstOrDefaultAsync<int?>(existquery,new{companyid=dto.CompanyId,name=dto.Name,id=id});
         if(existId is not null) throw new ConflictException("Department already exists");
-        var updatequery="update department set name=@name,companyId=@companyId where id=@id";
-        int rowsaffected=await connection.ExecuteAsync(updatequery,new{name=dto.Name,companyId=dto.CompanyId,id=id});
+        
+        int rowsaffected=await connection.ExecuteAsync("UpdateDepartment",new{p_Name=dto.Name,p_CompanyId=dto.CompanyId,p_Id=id},commandType: CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server Error");
         return true;
     }

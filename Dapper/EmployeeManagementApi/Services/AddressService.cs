@@ -6,6 +6,7 @@ using EmployeeManagementApi.Exceptions;
 using EmployeeManagementApi.Interfaces;
 using EmployeeManagementApi.Extensions;
 using EmployeeManagementApi.RequestHelpers.Pagination;
+using System.Data;
 
 namespace EmployeeManagementApi.Services;
 
@@ -20,18 +21,18 @@ public class AddressService(EmployeeContext context) : IAddressService
         var existAddressQuery="select id from address where employeeId=@id";
         int? addId=await connection.QueryFirstOrDefaultAsync<int?>(existAddressQuery,new {id=dto.EmployeeId});
         if(addId is not null) throw new ConflictException("Address already associated with the employee");
-        var insertQuery="insert into address (EmployeeId,HouseNo,Street,City,State,Country,PostalCode) values(@EmployeeId,@HouseNo,@Street,@City,@State,@Country,@PostalCode)";
+
         var queryparams=new
         {
-            EmployeeId=dto.EmployeeId,
-            HouseNo=dto.HouseNo,
-            Street=dto.Street,
-            City=dto.City,
-            State=dto.State,
-            Country=dto.Country,
-            PostalCode=dto.PostalCode
+            p_EmployeeId=dto.EmployeeId,
+            p_HouseNo=dto.HouseNo,
+            p_Street=dto.Street,
+            p_City=dto.City,
+            p_State=dto.State,
+            p_Country=dto.Country,
+            p_PostalCode=dto.PostalCode
         };
-        int rowsaffected=await connection.ExecuteAsync(insertQuery,queryparams);
+        int rowsaffected=await connection.ExecuteAsync("CreateAddress",queryparams,commandType:CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server error");
         var address=await connection.QueryFirstAsync<Address>("Select * from Address where employeeid=@id",new{id=dto.EmployeeId});
         return address.ToDto();
@@ -41,11 +42,10 @@ public class AddressService(EmployeeContext context) : IAddressService
     {
         using var connection=context.GetConnection();
         var addressquery="Select id from address where id=@id";
-        var addressParams=new {id=addressId};
+        var addressParams=new {p_Id=addressId};
         int? addId=await connection.QueryFirstOrDefaultAsync<int?>(addressquery,addressParams);
         if(addId is null) throw new NotFoundException("Address not found");
-        var deleteQuery="delete from address where id=@id";
-        int rowsaffected=await connection.ExecuteAsync(deleteQuery,addressParams);
+        int rowsaffected=await connection.ExecuteAsync("DeleteAddress",addressParams,commandType: CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server error");
         return true;
     }
@@ -66,9 +66,8 @@ public class AddressService(EmployeeContext context) : IAddressService
     public async Task<AddressDto> GetAddressByIdAsync(int id)
     {
         using var connection=context.GetConnection();
-        var addressquery="Select * from address where id=@id";
-        var addressParams=new {id=id};
-        Address? address=await connection.QueryFirstOrDefaultAsync<Address?>(addressquery,addressParams);
+        var addressParams=new {AddressId=id};
+        Address? address=await connection.QueryFirstOrDefaultAsync<Address?>("GetAddressById",addressParams,commandType:CommandType.StoredProcedure);
         if(address is null) throw new NotFoundException("Address not found");
         return address.ToDto();
     }
@@ -89,19 +88,19 @@ public class AddressService(EmployeeContext context) : IAddressService
         var existAddressQuery="select id from address where id=@id";
         int? addId=await connection.QueryFirstOrDefaultAsync<int?>(existAddressQuery,new {id=id});
         if(addId is null) throw new NotFoundException("Address Not Found");
-        var updateQuery="update address set HouseNo=@HouseNo,Street=@Street,City=@City,State=@State,Country=@Country,PostalCode=@PostalCode where id=@id";
+       
 
         var queryparams=new
         {
-            HouseNo=dto.HouseNo,
-            Street=dto.Street,
-            City=dto.City,
-            State=dto.State,
-            Country=dto.Country,
-            PostalCode=dto.PostalCode,
-            id=id
+            p_HouseNo=dto.HouseNo,
+            p_Street=dto.Street,
+            p_City=dto.City,
+            p_State=dto.State,
+            p_Country=dto.Country,
+            p_PostalCode=dto.PostalCode,
+            p_Id=id
         };
-        int rowsaffected=await connection.ExecuteAsync(updateQuery,queryparams);
+        int rowsaffected=await connection.ExecuteAsync("UpdateAddress",queryparams,commandType: CommandType.StoredProcedure);
         if(rowsaffected==0) throw new Exception("Internal Server error");
         return true;
     }
