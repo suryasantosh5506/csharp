@@ -1,0 +1,22 @@
+use jobmanagement;
+
+delimiter //
+create procedure GetUserByEmail(in p_Email varchar(100))
+begin
+	select * from User where email=p_Email;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure InsertUser(in p_Name varchar(100),
+							in p_Email varchar(100),
+                            in p_PasswordHash varchar(350),
+                            in p_Role varchar(20)
+                            )
+begin
+	insert into User (Name,Email,PasswordHash,Role) values (p_Name,p_Email,p_PasswordHash,p_Role);
+end;
+
+//
+delimiter ;

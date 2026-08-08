@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Dapper/">
     <Project Path="Dapper/EmployeeManagementApi/EmployeeManagementApi.csproj" />
+    <Project Path="Dapper/JobManagementApi/JobManagementApi.csproj" />
   </Folder>
   <Project Path="GameStore.Api/GameStore.Api.csproj" />
   <Project Path="HospitalManagementAPI/HospitalManagementAPI.csproj" />

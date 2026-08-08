@@ -1,0 +1,101 @@
+create database JobManagement;
+use jobmanagement;
+
+create table User(
+	Id int auto_increment primary key,
+    Name varchar(100) not null,
+    Email varchar(100) not null unique,
+    PasswordHash varchar(350) not null,
+    Role varchar(20) default "Candidate" check(Role in ("Candidate","Recruiter","Admin")),
+    CreatedAt timestamp default current_timestamp
+);
+
+create  table Company(
+	Id int auto_increment primary key,
+    UserId int not null,
+    Name varchar(100) not null,
+    Description text,
+    Location varchar(100) not null,
+    Website varchar(100) not null,
+    CreatedAt timestamp default current_timestamp,
+    
+    constraint FK_Company_User
+    foreign key (UserId)
+    references User(Id)
+    on update cascade
+    on delete cascade
+);
+
+create table Job(
+	Id int auto_increment primary key,
+    CompanyId int not null,
+    RecruiterId int not null,
+    Title varchar(300) not null,
+    Description text,
+    Location varchar(100) not null,
+    SalaryMin decimal(10,2) not null,
+    SalaryMax decimal(15,2) not null,
+    JobType varchar(100) check(JobType in("FullTime","PartTime","Internship")),
+    Experience int not null,
+    CreatedAt timestamp default current_timestamp,
+    
+    constraint FK_Job_Company
+    foreign  key (CompanyId)
+    references Company(Id)
+    on delete cascade
+    on update cascade,
+    
+    constraint FK_Job_Recruiter
+    foreign  key (RecruiterId)
+    references User(Id)
+    on delete cascade
+    on update cascade
+);
+
+create table Application(
+	Id int auto_increment primary key,
+    JobId int not null,
+    CandidateId int not null,
+    ResumeUrl text not null,
+    Status varchar(50) check(Status in ("Applied","Shortlisted","Rejected","Hired")),
+    CreatedAt timestamp default current_timestamp,
+    
+    constraint FK_Application_Job
+    foreign  key (JobId)
+    references Job(Id)
+    on delete cascade
+    on update cascade,	
+    
+    constraint FK_Candidate_Job
+    foreign  key (CandidateId)
+    references User(Id)
+    on delete cascade
+    on update cascade,
+    
+    CONSTRAINT UQ_Application_Job_Candidate
+	UNIQUE (JobId, CandidateId)
+);
+
+CREATE TABLE Skills(
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE JobSkills(
+    JobId INT NOT NULL,
+    SkillId INT NOT NULL,
+
+    PRIMARY KEY(JobId, SkillId),
+
+    CONSTRAINT FK_JobSkills_Job
+    FOREIGN KEY(JobId)
+    REFERENCES Job(Id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+    CONSTRAINT FK_JobSkills_Skill
+    FOREIGN KEY(SkillId)
+    REFERENCES Skills(Id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
