@@ -66,6 +66,8 @@ public class EmployeeService(EmployeeContext context) : IEmployeeService
             limit=employeeParams.PageSize,
             skip=(employeeParams.PageNumber-1)*employeeParams.PageSize,
             searchTerm=$"%{employeeParams.SearchTerm}%",
+            email=string.IsNullOrEmpty(employeeParams.Email)?"":employeeParams.Email.Trim(),
+            phone=string.IsNullOrEmpty(employeeParams.Phone)?"":employeeParams.Phone.Trim(),
         };
 
         var order=(employeeParams.IsDescending)?"desc":"asc";
@@ -76,13 +78,25 @@ public class EmployeeService(EmployeeContext context) : IEmployeeService
             countQuery.Append("and name like @searchTerm ");
         }
 
+        if (!string.IsNullOrEmpty(employeeParams.Email))
+        {
+            query.Append(" and email like @email ");
+            countQuery.Append(" and email like @email ");
+        }
+
+        if (!string.IsNullOrEmpty(employeeParams.Phone))
+        {
+            query.Append(" and phone like @phone ");
+            countQuery.Append(" and phone like @phone ");
+        }
+
         if (!string.IsNullOrEmpty(employeeParams.SortBy))
         {
             query.Append(employeeParams.SortBy?.Trim()?.ToLower() switch
             {
                 "name"=>$" order by name {order} ",
                 "email"=>$" order by email {order} ",
-                "phone"=>$"order by Phone {order} ",
+                "phone"=>$" order by Phone {order} ",
                 _ =>$" order by id {order} "
             });
         }

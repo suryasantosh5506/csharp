@@ -18,4 +18,6 @@ public interface ICompanyService
     Task<CompanyDetailsDto> GetCompanyDetailsAsync(int id);
 
     Task<CompanyCompleteDto> GetCompanyCompleteAsync(int id);
+
+    Task<CompanySummaryDto> GetCompanySummaryAsync(int id);
 }

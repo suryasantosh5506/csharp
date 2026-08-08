@@ -174,4 +174,30 @@ public class CompanyService(EmployeeContext context) : ICompanyService
             deptCompleteDto
         );
     }
+
+    public async Task<CompanySummaryDto> GetCompanySummaryAsync(int id)
+    {
+        var connection=context.GetConnection();
+        string query=@"Select * from company where id=@id;
+
+                        select * from department where companyId=@id;
+
+                        select count(*) from Employee where companyId=@id;
+                    ";
+
+        using var multi=await connection.QueryMultipleAsync(query,new{id=id});
+        Company? company=await multi.ReadFirstOrDefaultAsync<Company?>();
+        if(company is null) throw new NotFoundException("Company not found");
+        var departments=await multi.ReadAsync<Department>();
+        int cnt=await multi.ReadSingleAsync<int>();
+
+        return new CompanySummaryDto(
+                new CompanyDetailsDto(
+                    company.Id,
+                    company.Name,
+                    company.Email,
+                    company.Phone,
+                    departments.Select(x=>x.ToDto()).ToList()),
+                    cnt);
+    }
 }

@@ -59,4 +59,11 @@ public class CompanyController(ICompanyService companyService) : BaseApiControll
         var company = await companyService.GetCompanyCompleteAsync(id);
         return Ok(company);
     }
+
+    [HttpGet("{id:int}/summary")]
+    public async Task<ActionResult<CompanySummaryDto>> GetCompanySummary(int id)
+    {
+        var company = await companyService.GetCompanySummaryAsync(id);
+        return Ok(company);
+    }
 }
