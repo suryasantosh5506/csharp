@@ -1,5 +1,3 @@
-use jobmanagement;
-
 delimiter //
 create procedure GetUserByEmail(in p_Email varchar(100))
 begin
@@ -16,6 +14,43 @@ create procedure InsertUser(in p_Name varchar(100),
                             )
 begin
 	insert into User (Name,Email,PasswordHash,Role) values (p_Name,p_Email,p_PasswordHash,p_Role);
+end;
+
+//
+delimiter ;
+
+delimiter //
+create procedure InsertCompany(in p_UserId int,
+                            in p_Name varchar(100),
+							in p_Description varchar(100),
+                            in p_Location varchar(350),
+                            in p_Website varchar(20)
+                            )
+begin
+	insert into Company (UserId,Name,Description,Location,Website) values (p_UserId,p_Name,p_Description,p_Location,p_Website);
+end;
+
+//
+delimiter ;
+
+delimiter //
+create procedure UpdateCompany(in p_Id int,
+							in p_Name varchar(100),
+							in p_Description varchar(100),
+                            in p_Location varchar(350),
+                            in p_Website varchar(20)
+                            )
+begin
+	update Company set Name=p_Name,description=p_Description,location=p_Location,website=p_Website where id=p_Id;
+end;
+
+//
+delimiter ;
+
+delimiter //
+create procedure GetCompanyById(in p_Id int)
+begin
+	select * from company where id=p_Id;
 end;
 
 //

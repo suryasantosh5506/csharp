@@ -15,9 +15,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<DapperContext>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<PasswordHasher<User>>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -55,9 +58,6 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
-
-app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
