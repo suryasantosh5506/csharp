@@ -141,3 +141,57 @@ begin
 end;
 //
 delimiter ;
+
+delimiter //
+create procedure GetJobApplicationById(in p_Id int)
+begin
+	select * from application where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure GetJobApplicationsByUserId(in p_Id int)
+begin
+	select * from application where CandidateId=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure CreateApplication(in p_JobId int,
+									in p_CandidateId int,
+                                    in p_ResumeUrl text,
+                                    in p_Status varchar(50)
+									)
+begin
+	insert into application (jobid,candidateid,resumeurl,status) values(p_JobId,p_CandidateId,p_ResumeUrl,p_Status);
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure UpdateApplicationStatus(in p_Id int,
+                                    in p_Status varchar(50)
+									)
+begin
+	update application set status=p_Status where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure DeleteApplication(in p_Id int)
+begin
+	delete from application where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure GetJobApplicationsByJobId(in p_JobId int)
+begin
+	select * from application where JobId=p_JobId;
+end;
+//
+delimiter ;
