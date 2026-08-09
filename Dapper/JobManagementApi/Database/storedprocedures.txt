@@ -195,3 +195,37 @@ begin
 end;
 //
 delimiter ;
+
+delimiter //
+create procedure GetSkillById(in p_Id int)
+begin
+	select * from skills where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure UpdateSkill(in p_Id int,
+							 in p_Name varchar(100)
+                             )
+begin
+	update skills set name=p_Name where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure DeleteSkill(in p_Id int)
+begin
+	delete from skills where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure CreateSkill(in p_Name varchar(100))
+begin
+	insert into skills (name) values(p_Name);
+end;
+//
+delimiter ;
