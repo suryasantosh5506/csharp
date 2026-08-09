@@ -1,3 +1,4 @@
 {
-    "dotnet.defaultSolution": "GameStore.slnx"
+  "dotnet.defaultSolution": "GameStore.slnx",
+  "liveServer.settings.multiRootWorkspaceName": "csharp"
 }

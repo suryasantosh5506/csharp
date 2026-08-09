@@ -229,3 +229,38 @@ begin
 end;
 //
 delimiter ;
+
+delimiter //
+create procedure AddJobSkill(in p_JobId int,
+							 in p_SkillId int
+							)
+begin
+	insert into JobSkills values (p_JobId,p_SkillId);
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure RemoveJobSkill(in p_JobId int,
+							 in p_SkillId int
+							)
+begin
+	delete from jobskills where jobid=p_JobId and skillid=p_SkillId;
+end;
+//
+delimiter ;
+
+DELIMITER //
+
+CREATE PROCEDURE GetJobSkills(
+    IN p_JobId INT
+)
+BEGIN
+    select s.Id,s.Name
+    from JobSkills js
+    inner join Skills s
+	on js.SkillId=s.Id
+    where js.JobId=p_JobId;
+END //
+
+DELIMITER ;
