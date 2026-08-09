@@ -21,16 +21,14 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<PasswordHasher<User>>();
 
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("JWT Key is missing.");
+var jwtKey = builder.Configuration["Jwt:Key"]?? throw new InvalidOperationException("JWT Key is missing.");
 
-var jwtIssuer = builder.Configuration["Jwt:Issuer"]
-    ?? throw new InvalidOperationException("JWT Issuer is missing.");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]?? throw new InvalidOperationException("JWT Issuer is missing.");
 
-var jwtAudience = builder.Configuration["Jwt:Audience"]
-    ?? throw new InvalidOperationException("JWT Audience is missing.");
+var jwtAudience = builder.Configuration["Jwt:Audience"]?? throw new InvalidOperationException("JWT Audience is missing.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

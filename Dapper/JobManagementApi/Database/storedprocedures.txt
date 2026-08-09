@@ -1,3 +1,5 @@
+use jobmanagement;
+
 delimiter //
 create procedure GetUserByEmail(in p_Email varchar(100))
 begin
@@ -53,5 +55,89 @@ begin
 	select * from company where id=p_Id;
 end;
 
+//
+delimiter ;
+
+delimiter //
+create procedure DeleteCompanyById(in p_Id int)
+begin
+	delete from company where id=p_Id;
+end;
+
+//
+delimiter ;
+
+delimiter //
+create procedure GetJobById(in p_Id int)
+begin
+	select * from Job where id=p_Id;
+end;
+//
+delimiter ;
+
+
+DELIMITER //
+
+CREATE PROCEDURE InsertJob(
+    IN p_CompanyId INT,
+    IN p_RecruiterId INT,
+    IN p_Title VARCHAR(300),
+    IN p_Description TEXT,
+    IN p_Location VARCHAR(100),
+    IN p_SalaryMin DECIMAL(10,2),
+    IN p_SalaryMax DECIMAL(15,2),
+    IN p_JobType VARCHAR(100),
+    IN p_Experience INT
+)
+BEGIN
+    INSERT INTO Job (
+        CompanyId,
+        RecruiterId,
+        Title,
+        Description,
+        Location,
+        SalaryMin,
+        SalaryMax,
+        JobType,
+        Experience
+    )
+    VALUES (
+        p_CompanyId,
+        p_RecruiterId,
+        p_Title,
+        p_Description,
+        p_Location,
+        p_SalaryMin,
+        p_SalaryMax,
+        p_JobType,
+        p_Experience
+    );
+END ;
+
+DELIMITER ;
+
+delimiter //
+create procedure UpdateJob(in p_Id int,
+								IN p_Title VARCHAR(300),
+								IN p_Description TEXT,
+								IN p_Location VARCHAR(100),
+								IN p_SalaryMin DECIMAL(10,2),
+								IN p_SalaryMax DECIMAL(15,2),
+								IN p_JobType VARCHAR(100),
+								IN p_Experience INT 
+								)
+                                
+begin
+	update Job set title=p_Title,description=p_Description,location=p_Location,salarymin=p_SalaryMin,salarymax=p_SalaryMax,jobtype=p_JobType
+					,experience=p_Experience  where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure DeleteJob(in p_Id int)
+begin
+	delete from Job where id=p_Id;
+end;
 //
 delimiter ;
