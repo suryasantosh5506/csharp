@@ -7,6 +7,8 @@ using JobManagementApi.Enums;
 using JobManagementApi.Exceptions;
 using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace JobManagementApi.Services;
 
@@ -40,12 +42,19 @@ public class SkillService(DapperContext context,ICurrentUserService currentUser)
         return true;
     }
 
-    public async Task<IEnumerable<SkillDto>> GetAllSkillsAsync()
+    public async Task<PagedList<SkillDto>> GetAllSkillsAsync(PaginationParams paginationParams)
     {
         using var connection=context.GetConnection();
-        string query="select * from skills";
-        var skills=await connection.QueryAsync<Skills>(query);
-        return skills.Select(x=>x.ToDto());
+        string query="select * from skills order by id asc limit @limit offset @offset ";
+        var parameters = new
+        {
+            limit=paginationParams.PageSize,
+            offset=(paginationParams.PageNumber-1)*paginationParams.PageSize
+        };
+
+        int totalCount=await connection.QuerySingleAsync<int>("select count(*) from skills");
+        var skills=await connection.QueryAsync<Skills>(query,parameters);
+        return PagedList<SkillDto>.ToPagedList(skills.Select(x=>x.ToDto()),paginationParams.PageNumber,totalCount,paginationParams.PageSize);
     }
 
     public async Task<SkillDto> GetSkillAsync(int id)

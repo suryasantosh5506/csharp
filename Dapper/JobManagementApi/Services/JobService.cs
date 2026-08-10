@@ -8,6 +8,7 @@ using JobManagementApi.Enums;
 using JobManagementApi.Exceptions;
 using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
 
 namespace JobManagementApi.Services;
 
@@ -84,13 +85,23 @@ public class JobService(DapperContext context,ICurrentUserService currentUser) :
         return job.ToDto();
     }
 
-    public async Task<IEnumerable<JobDto>> GetJobs()
+    public async Task<PagedList<JobDto>> GetJobs(PaginationParams paginationParams)
     {
         using var connection=context.GetConnection();
         StringBuilder query=new();
-        query.Append("select * from job");
-        var jobs=await connection.QueryAsync<Job>(query.ToString());
-        return jobs.Select(x=>x.ToDto());
+        query.Append("select * from job order by id asc ");
+        query.Append("limit @limit offset @offset ");
+
+        var parameters = new
+        {
+            limit=paginationParams.PageSize,
+            offset=(paginationParams.PageNumber-1)*paginationParams.PageSize,
+        };
+
+        int totalCount=await connection.ExecuteScalarAsync<int>("select count(*) from job");
+
+        var jobs=await connection.QueryAsync<Job>(query.ToString(),parameters);
+        return PagedList<JobDto>.ToPagedList(jobs.Select(x=>x.ToDto()),paginationParams.PageNumber,totalCount,paginationParams.PageSize);
     }
 
     public async Task<bool> UpdateJob(int id, UpdateJobDto dto)

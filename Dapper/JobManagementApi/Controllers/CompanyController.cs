@@ -1,5 +1,6 @@
 using JobManagementApi.Dtos.Company;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,9 +20,9 @@ public class CompanyController(ICompanyService companyService) : BaseApiControll
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<CompanyDto>>> GetCompanies()
+    public async Task<ActionResult<PagedList<CompanyDto>>> GetCompanies([FromQuery]PaginationParams paginationParams)
     {
-        var companies = await companyService.GetCompanies();
+        var companies = await companyService.GetCompanies(paginationParams);
 
         return Ok(companies);
     }

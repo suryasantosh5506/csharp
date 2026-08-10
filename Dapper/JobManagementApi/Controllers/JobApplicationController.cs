@@ -1,5 +1,6 @@
 using JobManagementApi.Dtos.JobApplication;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,18 +30,18 @@ public class JobApplicationController(IJobApplicationService jobApplicationServi
 
     [HttpGet("my")]
     [Authorize(Roles = "Candidate")]
-    public async Task<ActionResult<IEnumerable<JobApplicationDto>>> GetMyApplications()
+    public async Task<ActionResult<PagedList<JobApplicationDto>>> GetMyApplications([FromQuery]PaginationParams paginationParams)
     {
-        var applications = await jobApplicationService.GetMyApplications();
+        var applications = await jobApplicationService.GetMyApplications(paginationParams);
 
         return Ok(applications);
     }
 
     [HttpGet("job/{jobId:int}")]
     [Authorize(Roles = "Recruiter,Admin")]
-    public async Task<ActionResult<IEnumerable<JobApplicationDto>>> GetJobApplications(int jobId)
+    public async Task<ActionResult<PagedList<JobApplicationDto>>> GetJobApplications(int jobId,[FromQuery]PaginationParams paginationParams)
     {
-        var applications = await jobApplicationService.GetJobApplications(jobId);
+        var applications = await jobApplicationService.GetJobApplications(jobId,paginationParams);
 
         return Ok(applications);
     }

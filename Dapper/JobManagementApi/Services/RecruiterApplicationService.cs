@@ -1,5 +1,6 @@
 using System.Data;
 using System.Security.AccessControl;
+using System.Text;
 using Dapper;
 using JobManagementApi.Data;
 using JobManagementApi.Dtos.RecruiterApplication;
@@ -8,6 +9,7 @@ using JobManagementApi.Enums;
 using JobManagementApi.Exceptions;
 using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
 
 namespace JobManagementApi.Services;
 
@@ -78,24 +80,49 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
         return application.ToDto();
     }
 
-    public async Task<IEnumerable<RecruiterApplicationDto>> GetApplications()
+    public async Task<PagedList<RecruiterApplicationDto>> GetApplications(PaginationParams paginationParams)
     {
         if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
         if(currentUser.Role!=UserRole.Admin) throw new ForbiddenException("You don't have permission to perform this operation");
-        string query="select * from recruiterapplications";
+        StringBuilder query=new();
+        query.Append("select * from recruiterapplications order by id asc ");
+        query.Append("limit @limit offset @offset ");
         using var connection=context.GetConnection();
-        var applications=await connection.QueryAsync<RecruiterApplication>(query);
-        return applications.Select(x=>x.ToDto());
+
+        var parameters = new
+        {
+            limit=paginationParams.PageSize,
+            offset=(paginationParams.PageNumber-1)*paginationParams.PageSize
+        };
+
+        int totalCount=await connection.QuerySingleAsync<int>("select count(*)  from recruiterapplications");
+
+        var applications=await connection.QueryAsync<RecruiterApplication>(query.ToString(),parameters);
+        return PagedList<RecruiterApplicationDto>.ToPagedList(applications.Select(x=>x.ToDto()),paginationParams.PageNumber,totalCount,paginationParams.PageSize);
     }
 
-    public async Task<IEnumerable<RecruiterApplicationDto>> GetMyApplications()
+    public async Task<PagedList<RecruiterApplicationDto>> GetMyApplications(PaginationParams paginationParams)
     {
         if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
         if(currentUser.Role!=UserRole.Candidate) throw new ForbiddenException("You don't have permission to perform this operation");
         using var connection=context.GetConnection();
-        var parameters=new{p_CandidateId=currentUser.UserId};
-        var application=await connection.QueryAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
-        return (application.ToList().Count==0)?[]:application.Select(x=>x.ToDto());
+        
+        var parameters = new
+        {
+            id=currentUser.UserId,
+            limit=paginationParams.PageSize,
+            offset=(paginationParams.PageNumber-1)*paginationParams.PageSize
+        };
+
+        StringBuilder query=new();
+        query.Append("select * from recruiterapplications where CandidateId=@id order by id asc ");
+        query.Append("limit @limit offset @offset ");
+
+        int totalCount=await connection.QuerySingleAsync<int>("select count(*)  from recruiterapplications where CandidateId=@id");
+        var application=await connection.QueryAsync<RecruiterApplication>(query.ToString(),parameters);
+
+        return PagedList<RecruiterApplicationDto>.ToPagedList(application.Select(x=>x.ToDto()), paginationParams.PageNumber,
+                        totalCount, paginationParams.PageSize);
     }
 
     public async Task<bool> UpdateApplication(int id, UpdateRecruiterApplicationDto dto)

@@ -1,4 +1,5 @@
 using JobManagementApi.Dtos.RecruiterApplication;
+using JobManagementApi.RequestHelpers.Pagination;
 
 namespace JobManagementApi.Interfaces;
 
@@ -6,9 +7,9 @@ public interface IRecruiterApplicationService
 {
     Task<RecruiterApplicationDto> CreateApplication(CreateRecruiterApplicationDto dto);
 
-    Task<IEnumerable<RecruiterApplicationDto>> GetMyApplications();
+    Task<PagedList<RecruiterApplicationDto>> GetMyApplications(PaginationParams paginationParams);
 
-    Task<IEnumerable<RecruiterApplicationDto>> GetApplications();
+    Task<PagedList<RecruiterApplicationDto>> GetApplications(PaginationParams paginationParams);
 
     Task<RecruiterApplicationDto> GetApplicationById(int id);
 

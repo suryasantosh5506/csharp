@@ -1,5 +1,6 @@
 using JobManagementApi.Dtos.Skills;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +10,9 @@ public class SkillController(ISkillService skillService) : BaseApiController
 {
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SkillDto>>> GetAllSkills()
+    public async Task<ActionResult<IEnumerable<SkillDto>>> GetAllSkills([FromQuery]PaginationParams paginationParams)
     {
-        var skills=await skillService.GetAllSkillsAsync();
+        var skills=await skillService.GetAllSkillsAsync(paginationParams);
 
         return Ok(skills);
     }

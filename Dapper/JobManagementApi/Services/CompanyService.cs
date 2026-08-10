@@ -8,6 +8,7 @@ using JobManagementApi.Enums;
 using JobManagementApi.Exceptions;
 using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
 
 namespace JobManagementApi.Services;
 
@@ -60,13 +61,16 @@ public class CompanyService(DapperContext context, ICurrentUserService currentUs
         return true;
     }
 
-    public async Task<IEnumerable<CompanyDto>> GetCompanies()
+    public async Task<PagedList<CompanyDto>> GetCompanies(PaginationParams paginationParams)
     {
         using var connection=context.GetConnection();
         StringBuilder query=new StringBuilder();
-        query.Append("Select * from company");
-        var companies=await connection.QueryAsync<Company>(query.ToString());
-        return companies.Select(x=>x.ToDto());
+        query.Append("Select * from company order by id asc ");
+        query.Append("limit @limit offset @offset");
+        var parameters=new{limit=paginationParams.PageSize,offset=(paginationParams.PageNumber-1)*paginationParams.PageSize};
+        var companies=await connection.QueryAsync<Company>(query.ToString(),parameters);
+        int totalCount=await connection.ExecuteScalarAsync<int>("select count(*) from company");
+        return PagedList<CompanyDto>.ToPagedList(companies.Select(x=>x.ToDto()),paginationParams.PageNumber,totalCount,paginationParams.PageSize);
     }
 
     public async Task<CompanyDto> GetCompanyById(int id)

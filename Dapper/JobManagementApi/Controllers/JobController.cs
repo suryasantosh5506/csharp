@@ -1,5 +1,6 @@
 using JobManagementApi.Dtos.Jobs;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,9 +19,9 @@ public class JobController(IJobService jobService) : BaseApiController
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<JobDto>>> GetJobs()
+    public async Task<ActionResult<PagedList<JobDto>>> GetJobs([FromQuery]PaginationParams paginationParams)
     {
-        var jobs = await jobService.GetJobs();
+        var jobs = await jobService.GetJobs(paginationParams);
 
         return Ok(jobs);
     }

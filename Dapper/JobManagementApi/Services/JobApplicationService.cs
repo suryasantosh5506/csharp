@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text;
 using Dapper;
 using JobManagementApi.Data;
 using JobManagementApi.Dtos.JobApplication;
@@ -7,6 +8,7 @@ using JobManagementApi.Enums;
 using JobManagementApi.Exceptions;
 using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
+using JobManagementApi.RequestHelpers.Pagination;
 
 namespace JobManagementApi.Services;
 
@@ -85,7 +87,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         return application.ToDto();
     }
 
-    public async Task<IEnumerable<JobApplicationDto>> GetJobApplications(int jobId)
+    public async Task<PagedList<JobApplicationDto>> GetJobApplications(int jobId,PaginationParams paginationParams)
     {
         if(!currentUser.IsAuthenticated) throw new UnauthorizedException("unauthorized");
         if(currentUser.Role!=UserRole.Recruiter && currentUser.Role != UserRole.Admin)
@@ -99,12 +101,26 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         {
             throw new ForbiddenException("only admin and creator of job can view job applications");
         }
-        var jobApplications=await connection.QueryAsync<Application>("GetJobApplicationsByJobId",
-                                            new{p_JobId=jobId},commandType:CommandType.StoredProcedure);
-        return jobApplications.Select(x=>x.ToDto());
+
+        StringBuilder query=new();
+        
+        query.Append("select * from application where jobid=@id order by id asc ");
+        query.Append("limit @limit offset @offset");
+
+        var parameters = new
+        {
+            id=jobId,
+            limit=paginationParams.PageSize,
+            offset=(paginationParams.PageNumber-1)*paginationParams.PageSize
+        };
+
+        int totalCount=await connection.ExecuteScalarAsync<int>("select count(*) from application where JobId=@id",parameters);
+
+        var jobApplications=await connection.QueryAsync<Application>(query.ToString(),parameters);
+        return PagedList<JobApplicationDto>.ToPagedList(jobApplications.Select(x=>x.ToDto()),paginationParams.PageNumber,totalCount,paginationParams.PageSize);
     }
 
-    public async Task<IEnumerable<JobApplicationDto>> GetMyApplications()
+    public async Task<PagedList<JobApplicationDto>> GetMyApplications(PaginationParams paginationParams)
     {
         if(!currentUser.IsAuthenticated) throw new UnauthorizedException("unauthorized");
         if (currentUser.Role != UserRole.Candidate)
@@ -112,9 +128,24 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
             throw new ForbiddenException("Only candidate can access this route");
         }
         using var connection=context.GetConnection();
-        var jobApplications=await connection.QueryAsync<Application>("GetJobApplicationsByUserId",
-                                                new{p_Id=currentUser.UserId},commandType:CommandType.StoredProcedure);
-        return jobApplications.Select(x=>x.ToDto());
+
+        StringBuilder query=new();
+
+        query.Append("select * from application where candidateId=@id order by id asc ");
+        query.Append("limit @limit offset @offset");
+
+        var parameters = new
+        {
+            id=currentUser.UserId,
+            limit=paginationParams.PageSize,
+            offset=(paginationParams.PageNumber-1)*paginationParams.PageSize
+        };
+
+        int totalCount=await connection.ExecuteScalarAsync<int>("select count(*) from application where candidateId=@id",parameters);
+
+
+        var jobApplications=await connection.QueryAsync<Application>(query.ToString(),parameters);
+        return PagedList<JobApplicationDto>.ToPagedList(jobApplications.Select(x=>x.ToDto()),paginationParams.PageNumber,totalCount,paginationParams.PageSize);
     }
 
     public async Task<bool> UpdateApplicationStatus(int id, UpdateJobApplicationDto dto)
