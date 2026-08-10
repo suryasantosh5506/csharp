@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics;
 using System.Text;
 using Dapper;
 using JobManagementApi.Data;
@@ -9,6 +10,7 @@ using JobManagementApi.Exceptions;
 using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
 using JobManagementApi.RequestHelpers.Pagination;
+using JobManagementApi.RequestHelpers.Searching;
 
 namespace JobManagementApi.Services;
 
@@ -85,23 +87,97 @@ public class JobService(DapperContext context,ICurrentUserService currentUser) :
         return job.ToDto();
     }
 
-    public async Task<PagedList<JobDto>> GetJobs(PaginationParams paginationParams)
+    public async Task<PagedList<JobDto>> GetJobs(JobParams jobParams)
     {
         using var connection=context.GetConnection();
         StringBuilder query=new();
-        query.Append("select * from job order by id asc ");
+        query.Append("select * from job ");
+
+        StringBuilder conditions=new();
+
+        if (!string.IsNullOrWhiteSpace(jobParams.Search))
+        {
+            conditions.Append("(title like @search or description like @search)");
+        }
+
+        if (!string.IsNullOrWhiteSpace(jobParams.Location))
+        {
+            if(conditions.Length>0) conditions.Append(" and ");
+            conditions.Append("location like @location");
+        }
+
+        if (jobParams.JobType.HasValue)
+        {
+            if(conditions.Length>0) conditions.Append(" and ");
+            conditions.Append("jobtype like @jobtype");
+        }
+
+        if (jobParams.Experience.HasValue)
+        {
+            if(conditions.Length>0) conditions.Append(" and ");
+            conditions.Append("Experience<=@experience");
+        }
+
+        if (jobParams.MinSalary.HasValue)
+        {
+            if(conditions.Length>0) conditions.Append(" and ");
+            conditions.Append("salarymin>=@minsalary");
+        }
+
+        if (jobParams.MaxSalary.HasValue)
+        {
+            if(conditions.Length>0) conditions.Append(" and ");
+            conditions.Append("salarymax<=@maxsalary");
+        }
+
+        StringBuilder countQuery=new();
+        countQuery.Append("select count(*) from job ");
+
+
+        if(conditions.Length>0)
+        {
+            query.Append("where ");
+            query.Append(conditions);
+            countQuery.Append("where ");
+            countQuery.Append(conditions);
+        }
+
+        string order=(jobParams.IsDescending)?"desc":"asc";
+        if (!string.IsNullOrWhiteSpace(jobParams.SortBy))
+        {
+            query.Append(jobParams.SortBy.ToLower() switch
+            {
+                "companyid"=> $" order by companyid {order} ",
+                "recruiterid"=>$" order by recruiterid {order} ",
+                "title"=>$" order by title {order} ",
+                "description"=>$" order by description {order} ",
+                "location"=>$" order by location {order} ",
+                "salarymin"=>$" order by salarymin {order} ",
+                "salarymax"=>$" order by salarymax {order} ",
+                "experience"=>$" order by experience {order} ",
+                "createdat"=>$" order by createdat {order} ",
+                _=>$" order by id {order} ",
+            });
+        }
+        
         query.Append("limit @limit offset @offset ");
 
-        var parameters = new
+        var parameters=new
         {
-            limit=paginationParams.PageSize,
-            offset=(paginationParams.PageNumber-1)*paginationParams.PageSize,
+            search=$"%{jobParams.Search}%",
+            location=$"%{jobParams.Location}%",
+            jobtype=jobParams.JobType?.ToString(),
+            experience=jobParams.Experience,
+            minsalary=jobParams.MinSalary,
+            maxsalary=jobParams.MaxSalary,
+            limit=jobParams.PageSize,
+            offset=(jobParams.PageNumber-1)*jobParams.PageSize
         };
 
-        int totalCount=await connection.ExecuteScalarAsync<int>("select count(*) from job");
+        int totalCount=await connection.ExecuteScalarAsync<int>(countQuery.ToString(),parameters);
 
         var jobs=await connection.QueryAsync<Job>(query.ToString(),parameters);
-        return PagedList<JobDto>.ToPagedList(jobs.Select(x=>x.ToDto()),paginationParams.PageNumber,totalCount,paginationParams.PageSize);
+        return PagedList<JobDto>.ToPagedList(jobs.Select(x=>x.ToDto()),jobParams.PageNumber,totalCount,jobParams.PageSize);
     }
 
     public async Task<bool> UpdateJob(int id, UpdateJobDto dto)
