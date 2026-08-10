@@ -15,5 +15,6 @@ public class Job
     public JobTypes JobType{get;set;}
     public int Experience{get;set;}=0;
     public User Recruiter{get;set;}=null!;
+    public Company Company { get; set; } = null!;
     public List<JobSkills> JobSkills {get;set;}=[];
 }

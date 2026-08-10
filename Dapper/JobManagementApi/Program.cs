@@ -24,6 +24,7 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
+builder.Services.AddScoped<IMappingService,MappingService>();
 builder.Services.AddScoped<PasswordHasher<User>>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]?? throw new InvalidOperationException("JWT Key is missing.");
