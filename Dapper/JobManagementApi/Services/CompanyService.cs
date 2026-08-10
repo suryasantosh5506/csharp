@@ -9,6 +9,7 @@ using JobManagementApi.Exceptions;
 using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
 using JobManagementApi.RequestHelpers.Pagination;
+using JobManagementApi.RequestHelpers.Searching;
 
 namespace JobManagementApi.Services;
 
@@ -61,16 +62,47 @@ public class CompanyService(DapperContext context, ICurrentUserService currentUs
         return true;
     }
 
-    public async Task<PagedList<CompanyDto>> GetCompanies(PaginationParams paginationParams)
+    public async Task<PagedList<CompanyDto>> GetCompanies(CompanyParams companyParams)
     {
         using var connection=context.GetConnection();
         StringBuilder query=new StringBuilder();
-        query.Append("Select * from company order by id asc ");
-        query.Append("limit @limit offset @offset");
-        var parameters=new{limit=paginationParams.PageSize,offset=(paginationParams.PageNumber-1)*paginationParams.PageSize};
+        StringBuilder countQuery=new();
+        countQuery.Append("select count(*) from company");
+        query.Append("Select * from company ");
+        
+        StringBuilder conditions=new();
+
+
+        if (!string.IsNullOrWhiteSpace(companyParams.Search))
+        {
+            conditions.Append(" (name like @search or description like @search) ");
+        }
+
+        if (!string.IsNullOrWhiteSpace(companyParams.Location))
+        {
+            if(conditions.Length>0) conditions.Append(" and ");
+            conditions.Append(" location like @location ");
+        }
+
+        if (conditions.Length > 0)
+        {
+            query.Append(" where ");
+            countQuery.Append(" where ");
+            query.Append(conditions);
+            countQuery.Append(conditions);
+        }
+
+        query.Append(" order by id asc limit @limit offset @offset");
+
+        var parameters=new{
+            limit=companyParams.PageSize,
+            offset=(companyParams.PageNumber-1)*companyParams.PageSize,
+            search=$"%{companyParams.Search?.ToLower().Trim()}%",
+            location=$"%{companyParams.Location?.ToLower().Trim()}%"
+        };
         var companies=await connection.QueryAsync<Company>(query.ToString(),parameters);
-        int totalCount=await connection.ExecuteScalarAsync<int>("select count(*) from company");
-        return PagedList<CompanyDto>.ToPagedList(companies.Select(x=>x.ToDto()),paginationParams.PageNumber,totalCount,paginationParams.PageSize);
+        int totalCount=await connection.ExecuteScalarAsync<int>(countQuery.ToString(),parameters);
+        return PagedList<CompanyDto>.ToPagedList(companies.Select(x=>x.ToDto()),companyParams.PageNumber,totalCount,companyParams.PageSize);
     }
 
     public async Task<CompanyDto> GetCompanyById(int id)

@@ -11,6 +11,8 @@ using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
 using JobManagementApi.RequestHelpers.Pagination;
 using JobManagementApi.RequestHelpers.Searching;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.OpenApi;
 
 namespace JobManagementApi.Services;
 
@@ -95,39 +97,42 @@ public class JobService(DapperContext context,ICurrentUserService currentUser) :
 
         StringBuilder conditions=new();
 
+        var parameters=new DynamicParameters();
+        parameters.Add("limit",jobParams.PageSize);
+        parameters.Add("offset",(jobParams.PageNumber-1)*jobParams.PageSize);
+
         if (!string.IsNullOrWhiteSpace(jobParams.Search))
         {
+            parameters.Add("search",$"%{jobParams.Search.ToLower().Trim()}%");
             conditions.Append("(title like @search or description like @search)");
         }
 
         if (!string.IsNullOrWhiteSpace(jobParams.Location))
         {
+            parameters.Add("location",$"%{jobParams.Location.ToLower().Trim()}%");
             if(conditions.Length>0) conditions.Append(" and ");
             conditions.Append("location like @location");
         }
 
         if (jobParams.JobType.HasValue)
         {
+            parameters.Add("jobtype",$"%{jobParams.JobType.ToString()}%");
             if(conditions.Length>0) conditions.Append(" and ");
             conditions.Append("jobtype like @jobtype");
         }
 
         if (jobParams.Experience.HasValue)
         {
+            parameters.Add("experience",jobParams.Experience);
             if(conditions.Length>0) conditions.Append(" and ");
             conditions.Append("Experience<=@experience");
         }
 
-        if (jobParams.MinSalary.HasValue)
+        if (jobParams.Salary.HasValue)
         {
+            parameters.Add("salary",jobParams.Salary);
             if(conditions.Length>0) conditions.Append(" and ");
-            conditions.Append("salarymin>=@minsalary");
-        }
-
-        if (jobParams.MaxSalary.HasValue)
-        {
-            if(conditions.Length>0) conditions.Append(" and ");
-            conditions.Append("salarymax<=@maxsalary");
+            conditions.Append("salarymin<=@salary and salarymax>=@salary");
         }
 
         StringBuilder countQuery=new();
@@ -161,18 +166,6 @@ public class JobService(DapperContext context,ICurrentUserService currentUser) :
         }
         
         query.Append("limit @limit offset @offset ");
-
-        var parameters=new
-        {
-            search=$"%{jobParams.Search}%",
-            location=$"%{jobParams.Location}%",
-            jobtype=jobParams.JobType?.ToString(),
-            experience=jobParams.Experience,
-            minsalary=jobParams.MinSalary,
-            maxsalary=jobParams.MaxSalary,
-            limit=jobParams.PageSize,
-            offset=(jobParams.PageNumber-1)*jobParams.PageSize
-        };
 
         int totalCount=await connection.ExecuteScalarAsync<int>(countQuery.ToString(),parameters);
 

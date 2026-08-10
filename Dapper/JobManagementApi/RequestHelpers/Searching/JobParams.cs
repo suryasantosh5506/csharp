@@ -9,8 +9,7 @@ public class JobParams:PaginationParams
     public string? Location{get;set;}
     public JobTypes? JobType{get;set;}
     public int? Experience{get;set;}
-    public decimal? MinSalary{get;set;}
-    public decimal? MaxSalary{get;set;}
+    public decimal? Salary{get;set;}
     public string? SortBy{get;set;}="Id";
     public bool IsDescending{get;set;}=false;
 }
