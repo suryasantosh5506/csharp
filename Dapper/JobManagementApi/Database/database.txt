@@ -99,3 +99,25 @@ CREATE TABLE JobSkills(
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
+
+CREATE TABLE RecruiterApplications(
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    CandidateId INT NOT NULL,
+    Status VARCHAR(30) NOT NULL DEFAULT 'Pending',
+    AppliedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ReviewedAt DATETIME NULL,
+    ReviewedBy INT NULL,
+
+    CONSTRAINT FK_RecruiterApplications_Candidate
+        FOREIGN KEY(CandidateId)
+        REFERENCES User(Id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT FK_RecruiterApplications_Reviewer
+        FOREIGN KEY(ReviewedBy)
+        REFERENCES User(Id)
+        ON DELETE SET NULL
+);
+
+alter table RecruiterApplications
+add column Reason varchar(300) not null;

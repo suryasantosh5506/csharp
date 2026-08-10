@@ -264,3 +264,58 @@ BEGIN
 END //
 
 DELIMITER ;
+
+delimiter //
+create procedure CreateRecruiterApplication(in p_CandidateId int,
+											in p_Status varchar(30),
+											in p_Reason varchar(300)
+											)
+begin
+	insert into recruiterapplications (candidateId,status,reason) values (p_CandidateId,p_Status,p_Reason);
+
+end;                                            
+// 
+delimiter ;
+
+delimiter //
+create procedure GetRecruiterApplicationById(in p_Id int)
+begin
+	select * from recruiterapplications where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure DeleteRecruiterApplication(in p_Id int)
+begin
+	delete from recruiterapplications where id=p_Id;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure GetRecruiterApplicationsByCandidateId(in p_CandidateId int)
+begin
+	select * from recruiterapplications where candidateid=p_CandidateId;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure GetRecruiterApplications()
+begin
+	select * from recruiterapplications;
+end;
+//
+delimiter ;
+
+delimiter //
+create procedure UpdateRecruiterApplication(in p_Id int,
+											in p_Status varchar(30),
+                                            in p_ReviewedBy int
+											)
+begin                                            
+      update recruiterapplications set reviewedAt=now(),status=p_Status,reviewedby=p_ReviewedBy where id=p_Id;
+end;
+//
+delimiter ;                                            
