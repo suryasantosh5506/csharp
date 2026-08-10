@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace JobManagementApi.Services;
 
-public class SkillService(DapperContext context,ICurrentUserService currentUser) : ISkillService
+public class SkillService(DapperContext context,ICurrentUserService currentUser,ILogger<SkillService>logger) : ISkillService
 {
     public async Task<SkillDto> CreateSkillAsync(CreateSkillDto dto)
     {

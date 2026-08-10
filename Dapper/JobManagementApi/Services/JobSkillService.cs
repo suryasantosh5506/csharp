@@ -10,7 +10,7 @@ using JobManagementApi.Extensions;
 
 namespace JobManagementApi.Services;
 
-public class JobSkillService(DapperContext context,ICurrentUserService currentUser) : IJobSkillService
+public class JobSkillService(DapperContext context,ICurrentUserService currentUser,ILogger<JobSkillService>logger) : IJobSkillService
 {
     public async Task<bool> AddSkillToJob(int jobId, int skillId)
     {

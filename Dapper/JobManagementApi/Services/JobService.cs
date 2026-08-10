@@ -16,7 +16,7 @@ using Microsoft.OpenApi;
 
 namespace JobManagementApi.Services;
 
-public class JobService(DapperContext context,ICurrentUserService currentUser) : IJobService
+public class JobService(DapperContext context,ICurrentUserService currentUser,ILogger<JobService>logger) : IJobService
 {
     public async Task<JobDto> CreateJob(CreateJobDto dto)
     {

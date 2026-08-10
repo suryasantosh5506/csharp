@@ -12,18 +12,27 @@ using JobManagementApi.RequestHelpers.Pagination;
 
 namespace JobManagementApi.Services;
 
-public class JobApplicationService(DapperContext context,ICurrentUserService currentUser) : IJobApplicationService
+public class JobApplicationService(DapperContext context,ICurrentUserService currentUser,ILogger<JobApplicationService>logger) : IJobApplicationService
 {
     public async Task<JobApplicationDto> CreateApplication(int jobId, CreateJobApplicationDto dto)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if (currentUser.Role != UserRole.Candidate)
         {
+            logger.LogWarning($"user {currentUser.UserId} tries to apply to job without proper permission");
             throw new ForbiddenException("Only candidate can apply");
         }
         using var connection=context.GetConnection();
         Job? job=await connection.QueryFirstOrDefaultAsync<Job?>("GetJobById",new{p_Id=jobId},commandType:CommandType.StoredProcedure);
-        if(job is null) throw new NotFoundException("Job not found");
+        if(job is null)
+        {
+            logger.LogWarning($"user {currentUser.UserId} tries to apply to non existing job");
+            throw new NotFoundException("Job not found");
+        }
         var parameters=new
         {
           p_Id=currentUser.UserId,
@@ -37,40 +46,65 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         
         if(existingapplication is not null)
         {
+            logger.LogWarning($"user {currentUser.UserId} tries to apply the job with an application still under processing");
             throw new ConflictException("Already applied to this job");
         }
 
 
         int rowsaffected=await connection.ExecuteAsync("CreateApplication",parameters,commandType:CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal Server Error");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Company Deletion failed:Database responded with 0 rows affected");
+            throw new Exception("Internal server error");
+        }
+        logger.LogInformation($"user {currentUser.UserId} Applied to job successfully");
         var jobApplication=await connection.QueryFirstAsync<Application>(query,parameters);
         return jobApplication.ToDto();
     }
 
     public async Task<bool> DeleteApplication(int id)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if (currentUser.Role != UserRole.Candidate && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"user {currentUser.UserId} tries to apply to job without proper permission");
             throw new ForbiddenException("Only candidate and admin can delete an application");
         }
         var connection=context.GetConnection();
 
         Application? application=await connection.QueryFirstOrDefaultAsync<Application?>("GetJobApplicationById",new{p_Id=id},
                                         commandType:CommandType.StoredProcedure);
-        if(application is null) throw new NotFoundException("application not found");
+        if(application is null)
+        {
+            logger.LogWarning($"user {currentUser.UserId} tries to delete non existing application");
+            throw new NotFoundException("application not found");
+        }
         if (application.CandidateId != currentUser.UserId && currentUser.Role!=UserRole.Admin)
         {
+            logger.LogWarning($"user {currentUser.UserId} tries to apply to job without proper permission");
             throw new ForbiddenException("Only applied candidate or admin have access to delete");
         }
         int rowsaffected=await connection.ExecuteAsync("DeleteApplication",new{p_Id=id},commandType:CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal Server Error");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Company Deletion failed:Database responded with 0 rows affected");
+            throw new Exception("Internal server error");
+        }
+        logger.LogInformation($"Application {id} deleted successfully");
         return true;
     }
 
     public async Task<JobApplicationDto> GetApplicationById(int id)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         using var connection=context.GetConnection();
         Application? application=await connection.QueryFirstOrDefaultAsync<Application?>("GetJobApplicationById",new{p_Id=id},commandType:CommandType.StoredProcedure);
         if(application is null) throw new NotFoundException("Application not found");
@@ -89,7 +123,11 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
 
     public async Task<PagedList<JobApplicationDto>> GetJobApplications(int jobId,PaginationParams paginationParams)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if(currentUser.Role!=UserRole.Recruiter && currentUser.Role != UserRole.Admin)
         {
             throw new ForbiddenException("Only recruiter and admin can see the job applications");
@@ -122,7 +160,11 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
 
     public async Task<PagedList<JobApplicationDto>> GetMyApplications(PaginationParams paginationParams)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if (currentUser.Role != UserRole.Candidate)
         {
             throw new ForbiddenException("Only candidate can access this route");
@@ -150,7 +192,11 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
 
     public async Task<bool> UpdateApplicationStatus(int id, UpdateJobApplicationDto dto)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if (currentUser.Role != UserRole.Recruiter && currentUser.Role != UserRole.Admin)
         {
             throw new ForbiddenException("Only recruiter and admin can delete an application");

@@ -13,7 +13,7 @@ using JobManagementApi.RequestHelpers.Pagination;
 
 namespace JobManagementApi.Services;
 
-public class RecruiterApplicationService(DapperContext context,ICurrentUserService currentUser) : IRecruiterApplicationService
+public class RecruiterApplicationService(DapperContext context,ICurrentUserService currentUser,ILogger<RecruiterApplicationService>logger) : IRecruiterApplicationService
 {
     public async Task<RecruiterApplicationDto> CreateApplication(CreateRecruiterApplicationDto dto)
     {
