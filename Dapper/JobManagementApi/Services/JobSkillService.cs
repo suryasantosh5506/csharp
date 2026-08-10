@@ -20,7 +20,7 @@ public class JobSkillService(DapperContext context,ICurrentUserService currentUs
         }
         using var connection=context.GetConnection();
         var parameters=new {p_JobId=jobId,p_SkillId=skillId};
-        Job? job=await connection.QueryFirstOrDefaultAsync("GetJobById",parameters,commandType:CommandType.StoredProcedure);
+        Job? job=await connection.QueryFirstOrDefaultAsync<Job?>("GetJobById",new { p_Id = jobId },commandType:CommandType.StoredProcedure);
         if(job is null) throw new NotFoundException("Job Not Found");
         Skills? skill=await connection.QueryFirstOrDefaultAsync<Skills?>("GetSkillById",new{p_Id=skillId},commandType:CommandType.StoredProcedure);
         if(skill is null) throw new NotFoundException("Skill Not Found");
@@ -39,7 +39,7 @@ public class JobSkillService(DapperContext context,ICurrentUserService currentUs
     public async Task<IEnumerable<SkillDto>> GetJobSkills(int jobId)
     {
         using var connection=context.GetConnection();
-        Job? job=await connection.QueryFirstOrDefaultAsync("GetJobById",new {p_Id=jobId},commandType:CommandType.StoredProcedure);
+        Job? job=await connection.QueryFirstOrDefaultAsync<Job?>("GetJobById",new {p_Id=jobId},commandType:CommandType.StoredProcedure);
         if(job is null) throw new NotFoundException("Job Not Found");
         var skills=await connection.QueryAsync<Skills>("GetJobSkills",new{p_JobId=jobId},commandType:CommandType.StoredProcedure);
         return skills.Select(x=>x.ToDto());
@@ -53,7 +53,7 @@ public class JobSkillService(DapperContext context,ICurrentUserService currentUs
         }
         using var connection=context.GetConnection();
         var parameters=new {p_JobId=jobId,p_SkillId=skillId};
-        Job? job=await connection.QueryFirstOrDefaultAsync("GetJobById",new {p_Id=jobId},commandType:CommandType.StoredProcedure);
+        Job? job=await connection.QueryFirstOrDefaultAsync<Job?>("GetJobById",new {p_Id=jobId},commandType:CommandType.StoredProcedure);
         if(job is null) throw new NotFoundException("Job Not Found");
         Skills? skill=await connection.QueryFirstOrDefaultAsync<Skills?>("GetSkillById",new{p_Id=skillId},commandType:CommandType.StoredProcedure);
         if(skill is null) throw new NotFoundException("Skill Not Found");

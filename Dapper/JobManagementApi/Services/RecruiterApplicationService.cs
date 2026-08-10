@@ -118,7 +118,7 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
         query.Append("select * from recruiterapplications where CandidateId=@id order by id asc ");
         query.Append("limit @limit offset @offset ");
 
-        int totalCount=await connection.QuerySingleAsync<int>("select count(*)  from recruiterapplications where CandidateId=@id");
+        int totalCount=await connection.QuerySingleAsync<int>("select count(*)  from recruiterapplications where CandidateId=@id",parameters);
         var application=await connection.QueryAsync<RecruiterApplication>(query.ToString(),parameters);
 
         return PagedList<RecruiterApplicationDto>.ToPagedList(application.Select(x=>x.ToDto()), paginationParams.PageNumber,

@@ -76,7 +76,7 @@ end;
 delimiter ;
 
 
-DELIMITER //
+delimiter //
 
 CREATE PROCEDURE InsertJob(
     IN p_CompanyId INT,
@@ -112,9 +112,9 @@ BEGIN
         p_JobType,
         p_Experience
     );
-END ;
+END //
 
-DELIMITER ;
+delimiter ;
 
 delimiter //
 create procedure UpdateJob(in p_Id int,

@@ -11,5 +11,5 @@ public class PaginationParams
         get=>_pageSize;
         set=>_pageSize=(value<=MaxSize)?value:MaxSize;
     }
-    public int PageNumber{get;set;}
+    public int PageNumber{get;set;}=1;
 }

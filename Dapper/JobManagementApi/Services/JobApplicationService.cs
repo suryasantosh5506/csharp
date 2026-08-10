@@ -30,7 +30,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
           p_JobId=jobId, 
           p_CandidateId=currentUser.UserId, 
           p_ResumeUrl=dto.ResumeUrl,
-          p_Status=ApplicationStatus.Applied,
+          p_Status=ApplicationStatus.Applied.ToString(),
         };
         string query="select * from application where JobId=@p_JobId and CandidateId=@p_CandidateId";
         Application? existingapplication=await connection.QueryFirstOrDefaultAsync<Application?>(query,parameters);

@@ -6,13 +6,30 @@ using JobManagementApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer",new OpenApiSecurityScheme
+    {
+        Name="Authorization",
+        Type=SecuritySchemeType.Http,
+        Scheme="bearer",
+        BearerFormat="JWT",
+        In=ParameterLocation.Header,
+        Description="Enter your JWT token"
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer",document)] = []
+    });
+});
 
 builder.Services.AddScoped<DapperContext>();
 builder.Services.AddHttpContextAccessor();
@@ -24,6 +41,7 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
+builder.Services.AddScoped<IJobSkillService, JobSkillService>();
 builder.Services.AddScoped<IMappingService,MappingService>();
 builder.Services.AddScoped<IRecruiterApplicationService,RecruiterApplicationService>();
 builder.Services.AddScoped<PasswordHasher<User>>();
@@ -69,3 +87,9 @@ app.MapControllers();
 app.MapGet("/", () => "Job Management API");
 
 app.Run();
+
+internal class OpenApiReference
+{
+    public ReferenceType Type { get; set; }
+    public string Id { get; set; }
+}

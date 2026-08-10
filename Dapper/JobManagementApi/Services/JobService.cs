@@ -35,9 +35,9 @@ public class JobService(DapperContext context,ICurrentUserService currentUser) :
         }
         string query="select * from job where title=@p_Title and companyId=@p_CompanyId";
         var parameters=new{
-            p_Title=dto.Title.Trim().ToLower(),
             p_CompanyId=dto.CompanyId,
             p_RecruiterId=currentUser.UserId,
+            p_Title=dto.Title.Trim().ToLower(),
             p_Description=string.IsNullOrEmpty(dto.Description)?string.Empty:dto.Description,
             p_Location=dto.Location,
             p_SalaryMin=dto.SalaryMin,
