@@ -1,0 +1,148 @@
+using System.Data;
+using System.Security.AccessControl;
+using Dapper;
+using JobManagementApi.Data;
+using JobManagementApi.Dtos.RecruiterApplication;
+using JobManagementApi.Entities;
+using JobManagementApi.Enums;
+using JobManagementApi.Exceptions;
+using JobManagementApi.Extensions;
+using JobManagementApi.Interfaces;
+
+namespace JobManagementApi.Services;
+
+public class RecruiterApplicationService(DapperContext context,ICurrentUserService currentUser) : IRecruiterApplicationService
+{
+    public async Task<RecruiterApplicationDto> CreateApplication(CreateRecruiterApplicationDto dto)
+    {
+        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (currentUser.Role != UserRole.Candidate)
+        {
+            throw new ForbiddenException("You don't have access to perform this operation");
+        }
+        using var connection=context.GetConnection();
+
+        var parameters = new
+        {
+            p_CandidateId=currentUser.UserId,
+            p_Status=RecruiterApplicationStatus.Pending,
+            p_Reason=dto.Reason.Trim()   
+        };
+
+        RecruiterApplication? application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationsByCandidateId",parameters,
+                                                commandType:CommandType.StoredProcedure);
+
+        if(application is not null && application.Status == RecruiterApplicationStatus.Pending)
+        {
+            throw new ConflictException("Already applied");
+        }
+
+        int rowsaffected=await connection.ExecuteAsync("CreateRecruiterApplication",parameters,commandType:CommandType.StoredProcedure);
+        if(rowsaffected==0) throw new Exception("Internal Server error");
+        application=await connection.QueryFirstAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
+        return application.ToDto();
+    }
+
+    public async Task<bool> DeleteApplication(int id)
+    {
+        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if(currentUser.Role!=UserRole.Candidate && currentUser.Role!=UserRole.Admin) throw new ForbiddenException("You dont have access to perform this operation");
+        using var connection=context.GetConnection();
+        var parameters=new{p_Id=id};
+        var application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationById",parameters,commandType:CommandType.StoredProcedure);
+        if(application is null) throw new NotFoundException("application not found");
+        if(application.CandidateId!=currentUser.UserId && currentUser.Role != UserRole.Admin)
+        {
+            throw new ForbiddenException("You dont have access to perform this operation");
+        }
+        int rowsaffected=await connection.ExecuteAsync("DeleteRecruiterApplication",parameters,commandType:CommandType.StoredProcedure);
+        if(rowsaffected==0) throw new Exception("Internal server error");
+        return true;
+    }
+
+    public async Task<RecruiterApplicationDto> GetApplicationById(int id)
+    {
+        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if(currentUser.Role!=UserRole.Candidate && currentUser.Role != UserRole.Admin)
+        {
+            throw new ForbiddenException("You don't have permission to perform this operation");
+        }
+        using var connection=context.GetConnection();
+        var parameters=new {p_Id=id};
+        var application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication>("GetRecruiterApplicationById",parameters,commandType:CommandType.StoredProcedure);
+        if(application is null) throw new NotFoundException("application not found");
+        if(application.CandidateId!=currentUser.UserId && currentUser.Role != UserRole.Admin)
+        {
+            throw new ForbiddenException("You don't have permission to perform this operation");
+        }
+        return application.ToDto();
+    }
+
+    public async Task<IEnumerable<RecruiterApplicationDto>> GetApplications()
+    {
+        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if(currentUser.Role!=UserRole.Admin) throw new ForbiddenException("You don't have permission to perform this operation");
+        string query="select * from recruiterapplications";
+        using var connection=context.GetConnection();
+        var applications=await connection.QueryAsync<RecruiterApplication>(query);
+        return applications.Select(x=>x.ToDto());
+    }
+
+    public async Task<IEnumerable<RecruiterApplicationDto>> GetMyApplications()
+    {
+        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if(currentUser.Role!=UserRole.Candidate) throw new ForbiddenException("You don't have permission to perform this operation");
+        using var connection=context.GetConnection();
+        var parameters=new{p_CandidateId=currentUser.UserId};
+        var application=await connection.QueryAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
+        return (application.ToList().Count==0)?[]:application.Select(x=>x.ToDto());
+    }
+
+    public async Task<bool> UpdateApplication(int id, UpdateRecruiterApplicationDto dto)
+    {
+        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if(currentUser.Role!=UserRole.Admin) throw new ForbiddenException("You don't have permission to perform this operation");
+        if(dto.Status==RecruiterApplicationStatus.Pending) throw new BadRequestException("Invalid application status");
+        using var connection=context.GetConnection();
+        var parameters=new{
+            p_Id=id,
+            p_Status=dto.Status.ToString(),
+            p_ReviewedBy=currentUser.UserId
+        };
+        var application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationById",parameters,commandType:CommandType.StoredProcedure);
+        if(application is null) throw new NotFoundException("application not found");
+        if(application.Status!=RecruiterApplicationStatus.Pending) throw new ConflictException("Application has already been reviewed");
+
+        int rowsaffected=0;
+        if (dto.Status == RecruiterApplicationStatus.Approved)
+        {
+            connection.Open();
+            using var transaction=connection.BeginTransaction();
+            try
+            {
+                rowsaffected=await connection.ExecuteAsync("UpdateRecruiterApplication",parameters,commandType:CommandType.StoredProcedure,transaction:transaction);
+                if(rowsaffected==0) throw new Exception("Internal server error");
+                var approvedParameters = new
+                {
+                    role=UserRole.Recruiter.ToString(),
+                    id=application.CandidateId
+                };
+                var query="update user set role=@role where id=@id";
+                rowsaffected=await connection.ExecuteAsync(query,approvedParameters,transaction:transaction);
+                if(rowsaffected==0) throw new Exception("Internal server error");
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+
+        rowsaffected=await connection.ExecuteAsync("UpdateRecruiterApplication",parameters,commandType:CommandType.StoredProcedure);
+        if(rowsaffected==0) throw new Exception("Internal server error");
+        return true;
+    }
+}

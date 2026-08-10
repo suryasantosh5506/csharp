@@ -296,7 +296,7 @@ delimiter ;
 delimiter //
 create procedure GetRecruiterApplicationsByCandidateId(in p_CandidateId int)
 begin
-	select * from recruiterapplications where candidateid=p_CandidateId;
+	select * from recruiterapplications where candidateid=p_CandidateId order by id desc;
 end;
 //
 delimiter ;
