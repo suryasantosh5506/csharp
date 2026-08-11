@@ -14,4 +14,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
+<ItemGroup>
+    <Compile Remove="JobManagementApi.Tests\**" />
+    <EmbeddedResource Remove="JobManagementApi.Tests\**" />
+    <Content Remove="JobManagementApi.Tests\**" />
+    <None Remove="JobManagementApi.Tests\**" />
+</ItemGroup>
+
 </Project>

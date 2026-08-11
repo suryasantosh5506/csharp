@@ -3,6 +3,9 @@
     <Project Path="Dapper/EmployeeManagementApi/EmployeeManagementApi.csproj" />
     <Project Path="Dapper/JobManagementApi/JobManagementApi.csproj" />
   </Folder>
+  <Folder Name="/Dapper/JobManagementApi/">
+    <Project Path="Dapper/JobManagementApi/JobManagementApi.Tests/JobManagementApi.Tests.csproj" />
+  </Folder>
   <Project Path="GameStore.Api/GameStore.Api.csproj" />
   <Project Path="HospitalManagementAPI/HospitalManagementAPI.csproj" />
   <Project Path="JobPortal/JobPortal.csproj" />

@@ -88,9 +88,3 @@ app.MapControllers();
 app.MapGet("/", () => "Job Management API");
 
 app.Run();
-
-internal class OpenApiReference
-{
-    public ReferenceType Type { get; set; }
-    public string Id { get; set; }
-}

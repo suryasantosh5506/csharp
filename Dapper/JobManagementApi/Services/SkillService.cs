@@ -56,7 +56,7 @@ public class SkillService(DapperContext context,ICurrentUserService currentUser,
         if (currentUser.Role != UserRole.Admin)
         {
             logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to delete a skill without proper permission");
-            throw new Exception("You don't have access to perform this operation");
+            throw new ForbiddenException("You don't have access to perform this operation");
         }
         using var connection=context.GetConnection();
         var parameters=new{p_Id=id};
