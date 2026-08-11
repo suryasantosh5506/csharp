@@ -2,6 +2,7 @@ using System.Text;
 using JobManagementApi.Data;
 using JobManagementApi.Entities;
 using JobManagementApi.Interfaces;
+using JobManagementApi.Middlewares;
 using JobManagementApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -75,7 +76,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
