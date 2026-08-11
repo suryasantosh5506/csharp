@@ -20,17 +20,27 @@ public class JobService(DapperContext context,ICurrentUserService currentUser,IL
 {
     public async Task<JobDto> CreateJob(CreateJobDto dto)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to create a job without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if(currentUser.Role!=UserRole.Recruiter && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to create a job without proper permission");
             throw new ForbiddenException("only recruiter and admin can create a job");
         }
         using var connection=context.GetConnection();
         Company? company=await connection.QueryFirstOrDefaultAsync<Company?>("GetCompanyById",new{p_Id=dto.CompanyId},
         commandType: CommandType.StoredProcedure);
-        if(company is null) throw new NotFoundException("company not found");
+        if(company is null)
+        {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to create a job for non-existing company");
+            throw new NotFoundException("company not found");
+        }
         if (company.UserId != currentUser.UserId && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to create a job without proper permission");   
             throw new ForbiddenException("You do not have permission to create a job for this company");
         }
         string query="select * from job where title=@p_Title and companyId=@p_CompanyId";
@@ -46,38 +56,64 @@ public class JobService(DapperContext context,ICurrentUserService currentUser,IL
             p_Experience=dto.Experience
         };
         Job? existJob=await connection.QueryFirstOrDefaultAsync<Job?>(query,parameters);
-        if(existJob is not null) throw new ConflictException("Job with associated title already exists");
+        if(existJob is not null)
+        {
+            logger.LogWarning($"User {currentUser.UserId} tried to create a job with already existing title");
+            throw new ConflictException("Job with associated title already exists");
+        }
         if (dto.SalaryMin > dto.SalaryMax)
         {
+            logger.LogWarning($"User {currentUser.UserId} tried to create a job with incorrect information");
             throw new BadRequestException("Minimum salary cannot be greater than maximum salary");
         }
 
         if (dto.Experience < 0)
         {
+            logger.LogWarning($"User {currentUser.UserId} tried to create a job with incorrect information");
             throw new BadRequestException("Experience cannot be negative");
         }
         int rowsaffected=await connection.ExecuteAsync("InsertJob",parameters,commandType: CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal Server Error");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Job creation failed:Database responded with 0 rows affected");
+            throw new Exception("Internal Server Error");
+        }
         Job job=await connection.QueryFirstAsync<Job>(query,parameters);
+        logger.LogInformation($"Job {job.Id} created successfully");
         return job.ToDto();
     }
 
     public async Task<bool> DeleteJob(int id)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to delete a job without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if(currentUser.Role!=UserRole.Admin && currentUser.Role != UserRole.Recruiter)
         {
-            throw new ForbiddenException("only recruiter and admin can create a job");
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to delete the job without proper permission");
+            throw new ForbiddenException("only recruiter and admin can delete a job");
         }
         using var connection=context.GetConnection();
         Job? job=await connection.QueryFirstOrDefaultAsync<Job?>("GetJobById",new{p_Id=id},commandType:CommandType.StoredProcedure);
-        if(job is null) throw new NotFoundException("Job not found");
+        if(job is null)
+        {
+            logger.LogWarning($"User {currentUser.UserId} tried to delete a non existing job");
+            throw new NotFoundException("Job not found");
+        }
         if(job.RecruiterId!=currentUser.UserId && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to delete a job without proper permission");
             throw new ForbiddenException("Only the owner and admin can delete a Job");
         }
         int rowsaffected=await connection.ExecuteAsync("DeleteJob",new{p_Id=id},commandType:CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal Server Eroor");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Job deletion failed:Database responded with 0 rows affected");
+            throw new Exception("Internal Server Error");
+        }
+        logger.LogInformation("Job deleted successfully");
         return true;
     }
 
@@ -85,7 +121,11 @@ public class JobService(DapperContext context,ICurrentUserService currentUser,IL
     {
         using var connection=context.GetConnection();
         var job=await connection.QueryFirstOrDefaultAsync<Job>("GetJobById",new {p_Id=id},commandType:CommandType.StoredProcedure);
-        if(job is null) throw new NotFoundException("Job not found");
+        if(job is null)
+        {
+            logger.LogWarning("Someone tried to access non-existing job");
+            throw new NotFoundException("Job not found");
+        }
         return job.ToDto();
     }
 
@@ -175,29 +215,41 @@ public class JobService(DapperContext context,ICurrentUserService currentUser,IL
 
     public async Task<bool> UpdateJob(int id, UpdateJobDto dto)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to update the job without proper permission");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if(currentUser.Role!=UserRole.Admin && currentUser.Role != UserRole.Recruiter)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to update the job without proper permission");
             throw new ForbiddenException("only recruiter and admin can update a job");
         }
 
         if(dto.SalaryMin > dto.SalaryMax)
         {
+            logger.LogWarning($"User {currentUser.UserId} tried to update the job with inappropriate data");
             throw new BadRequestException("Minimum salary cannot be greater than maximum salary");
         }
 
         if(dto.Experience < 0)
         {
+            logger.LogWarning($"User {currentUser.UserId} tried to update the job with inappropriate data");
             throw new BadRequestException("Experience cannot be negative");
         }
 
         using var connection=context.GetConnection();
 
         Job? job=await connection.QueryFirstOrDefaultAsync<Job?>("GetJobById",new{p_Id=id},commandType:CommandType.StoredProcedure);
-        if(job is null) throw new NotFoundException("Job not found");
+        if(job is null)
+        {
+            logger.LogWarning($"User {currentUser.UserId} tried to update the non-existng job");
+            throw new NotFoundException("Job not found");
+        }
 
         if(job.RecruiterId!=currentUser.UserId && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to update the job without proper permission");
             throw new ForbiddenException("Only the owner and admin can update a Job");
         }
         string query="Select * from job where Title=@p_Title and CompanyId=@p_CompanyId and Id<>@p_Id";
@@ -216,10 +268,19 @@ public class JobService(DapperContext context,ICurrentUserService currentUser,IL
         };
 
         job=await connection.QuerySingleOrDefaultAsync<Job?>(query,parameters);
-        if(job is not null) throw new ConflictException("Job with specified title already exists");
+        if(job is not null)
+        {
+            logger.LogWarning($"User {currentUser.UserId} tried to update the job with already existing title");
+            throw new ConflictException("Job with specified title already exists");
+        }
 
         int rowsaffected=await connection.ExecuteAsync("UpdateJob",parameters,commandType:CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal Server Error");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Job update failed:Database responded with 0 rows affected");
+            throw new Exception("Internal Server Error");
+        }
+        logger.LogInformation($"Job {id} successfully updated");
         return true;
     }
 }

@@ -18,7 +18,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
     {
         if (!currentUser.IsAuthenticated)
         {
-            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            logger.LogWarning("Unauthorized access:SomeOne tried to create the job application without proper authentication");
             throw new UnauthorizedException("Unauthorized");
         }
         if (currentUser.Role != UserRole.Candidate)
@@ -54,7 +54,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         int rowsaffected=await connection.ExecuteAsync("CreateApplication",parameters,commandType:CommandType.StoredProcedure);
         if (rowsaffected == 0)
         {
-            logger.LogCritical("Company Deletion failed:Database responded with 0 rows affected");
+            logger.LogCritical("job application creation failed:Database responded with 0 rows affected");
             throw new Exception("Internal server error");
         }
         logger.LogInformation($"user {currentUser.UserId} Applied to job successfully");
@@ -66,7 +66,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
     {
         if (!currentUser.IsAuthenticated)
         {
-            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            logger.LogWarning("Unauthorized access:SomeOne tried to delete the job application without proper authentication");
             throw new UnauthorizedException("Unauthorized");
         }
         if (currentUser.Role != UserRole.Candidate && currentUser.Role != UserRole.Admin)
@@ -91,7 +91,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         int rowsaffected=await connection.ExecuteAsync("DeleteApplication",new{p_Id=id},commandType:CommandType.StoredProcedure);
         if (rowsaffected == 0)
         {
-            logger.LogCritical("Company Deletion failed:Database responded with 0 rows affected");
+            logger.LogCritical("job application Deletion failed:Database responded with 0 rows affected");
             throw new Exception("Internal server error");
         }
         logger.LogInformation($"Application {id} deleted successfully");
@@ -102,21 +102,30 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
     {
         if (!currentUser.IsAuthenticated)
         {
-            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            logger.LogWarning("Unauthorized access:SomeOne tried to access the job application without proper authentication");
             throw new UnauthorizedException("Unauthorized");
         }
         using var connection=context.GetConnection();
         Application? application=await connection.QueryFirstOrDefaultAsync<Application?>("GetJobApplicationById",new{p_Id=id},commandType:CommandType.StoredProcedure);
-        if(application is null) throw new NotFoundException("Application not found");
-
-        if (currentUser.Role == UserRole.Candidate)
+        if(application is null)
         {
-            if(application.CandidateId!=currentUser.UserId) throw new ForbiddenException("You do not have access to this application");
+            logger.LogWarning($"User {currentUser.UserId} tried to access an non-existing job application");
+            throw new NotFoundException("Application not found");
+        }
+
+        if (currentUser.Role == UserRole.Candidate && application.CandidateId!=currentUser.UserId)
+        {
+            logger.LogWarning($"Forbidden: User {currentUser.UserId} tried to access application {id} without proper permission");
+            throw new ForbiddenException("You do not have access to this application");
         }
         if (currentUser.Role == UserRole.Recruiter)
         {
             var job=await connection.QueryFirstAsync<Job>("GetJobById",new{p_Id=application.JobId},commandType:CommandType.StoredProcedure);
-            if(job.RecruiterId!=currentUser.UserId) throw new ForbiddenException("You do not have access to this application");
+            if (job.RecruiterId != currentUser.UserId)
+            {
+                logger.LogWarning($"Forbidden:User(Recruiter) tried to access job application {id} without proper permissions");
+                throw new ForbiddenException("You do not have access to this application");
+            }
         }
         return application.ToDto();
     }
@@ -125,18 +134,24 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
     {
         if (!currentUser.IsAuthenticated)
         {
-            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            logger.LogWarning("Unauthorized access:SomeOne tried to access the job aplications without proper authentication");
             throw new UnauthorizedException("Unauthorized");
         }
         if(currentUser.Role!=UserRole.Recruiter && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to access the job application {jobId} without proper permission");
             throw new ForbiddenException("Only recruiter and admin can see the job applications");
         }
         using var connection=context.GetConnection();
         Job? job=await connection.QueryFirstOrDefaultAsync<Job?>("GetJobById",new{p_Id=jobId},commandType:CommandType.StoredProcedure);
-        if(job is null) throw new NotFoundException("job not found");
+        if(job is null)
+        {
+            logger.LogWarning($"User {currentUser.UserId} tried to access an non-existing job application");
+            throw new NotFoundException("job not found");
+        }
         if(job.RecruiterId!=currentUser.UserId && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to access the job application {jobId} without proper permission");
             throw new ForbiddenException("only admin and creator of job can view job applications");
         }
 
@@ -162,11 +177,12 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
     {
         if (!currentUser.IsAuthenticated)
         {
-            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            logger.LogWarning("Unauthorized access:SomeOne tried to access the job applications without proper authentication");
             throw new UnauthorizedException("Unauthorized");
         }
         if (currentUser.Role != UserRole.Candidate)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to access the job applications without proper permission");
             throw new ForbiddenException("Only candidate can access this route");
         }
         using var connection=context.GetConnection();
@@ -194,11 +210,12 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
     {
         if (!currentUser.IsAuthenticated)
         {
-            logger.LogWarning("Unauthorized access:Some tried to delete the company without proper authentication");
+            logger.LogWarning("Unauthorized access:SomeOne tried to update the job application without proper authentication");
             throw new UnauthorizedException("Unauthorized");
         }
         if (currentUser.Role != UserRole.Recruiter && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to update the job application {id} without proper permission");
             throw new ForbiddenException("Only recruiter and admin can delete an application");
         }
         var connection=context.GetConnection();
@@ -210,14 +227,24 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         
         var jobApplication=await connection.QueryFirstOrDefaultAsync<Application?>("GetJobApplicationById",parameters,
                             commandType:CommandType.StoredProcedure);
-        if(jobApplication is null) throw new NotFoundException("Application not found");
+        if(jobApplication is null)
+        {
+            logger.LogWarning($"User {currentUser.UserId} tried to access non-existing job application");
+            throw new NotFoundException("Application not found");
+        }
         var job=await connection.QueryFirstAsync<Job>("GetJobById",new {p_Id=jobApplication.JobId},commandType:CommandType.StoredProcedure);
         if(job.RecruiterId!=currentUser.UserId && currentUser.Role != UserRole.Admin)
         {
-            throw new ForbiddenException("Doesn't have access to delete this application");
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to access the job application {id} without proper permission");
+            throw new ForbiddenException("Doesn't have access to update this application");
         }
         int rowsaffected=await connection.ExecuteAsync("UpdateApplicationStatus",parameters,commandType:CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal Server Error");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Job application Deletion failed:Database responded with 0 rows affected");
+            throw new Exception("Internal server error");
+        }
+        logger.LogInformation($"user {currentUser.UserId} updates the job application {id} successfully");
         return true;
     }
 }

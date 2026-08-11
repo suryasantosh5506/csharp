@@ -17,9 +17,14 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
 {
     public async Task<RecruiterApplicationDto> CreateApplication(CreateRecruiterApplicationDto dto)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to apply for recruiter without proper permission");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if (currentUser.Role != UserRole.Candidate)
         {
+            logger.LogWarning($"Forbidden:user {currentUser.UserId} tried to apply for recruiter without proper permission");
             throw new ForbiddenException("You don't have access to perform this operation");
         }
         using var connection=context.GetConnection();
@@ -31,34 +36,57 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
             p_Reason=dto.Reason.Trim()   
         };
 
-        RecruiterApplication? application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationsByCandidateId",parameters,
-                                                commandType:CommandType.StoredProcedure);
+        RecruiterApplication? application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
 
         if(application is not null && application.Status == RecruiterApplicationStatus.Pending)
         {
+            logger.LogWarning($"User {currentUser.UserId} tried to apply for recruiter again while an application is already in progress");
             throw new ConflictException("Already applied");
         }
 
         int rowsaffected=await connection.ExecuteAsync("CreateRecruiterApplication",parameters,commandType:CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal Server error");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Application to recruiter failed:database responded with 0 rows affected");
+            throw new Exception("Internal Server error");
+        }
         application=await connection.QueryFirstAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
+        logger.LogInformation($"USer {currentUser.UserId} Successfully appled to recruiter role");
         return application.ToDto();
     }
 
     public async Task<bool> DeleteApplication(int id)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
-        if(currentUser.Role!=UserRole.Candidate && currentUser.Role!=UserRole.Admin) throw new ForbiddenException("You dont have access to perform this operation");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to delete the application for recruiter without proper permission");
+            throw new UnauthorizedException("Unauthorized");
+        }
+        if(currentUser.Role!=UserRole.Candidate && currentUser.Role != UserRole.Admin)
+        {
+            logger.LogWarning($"Forbidden:user {currentUser.UserId} tried to delete the recruiter application without proper permission");
+            throw new ForbiddenException("You dont have access to perform this operation");
+        }
         using var connection=context.GetConnection();
         var parameters=new{p_Id=id};
         var application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationById",parameters,commandType:CommandType.StoredProcedure);
-        if(application is null) throw new NotFoundException("application not found");
+        if(application is null)
+        {
+            logger.LogWarning($"User {currentUser.UserId} tried to delete an non existing application for recruiter role");
+            throw new NotFoundException("application not found");
+        }
         if(application.CandidateId!=currentUser.UserId && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:user {currentUser.UserId} tried to delete the recruiter application without proper permission");
             throw new ForbiddenException("You dont have access to perform this operation");
         }
         int rowsaffected=await connection.ExecuteAsync("DeleteRecruiterApplication",parameters,commandType:CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal server error");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Deletion of recruiter application failed:database responded with 0 rows affected");
+            throw new Exception("Internal Server error");
+        }
+        logger.LogInformation("Application to recruiter role deleted successfully");
         return true;
     }
 
