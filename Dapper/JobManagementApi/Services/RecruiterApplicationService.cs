@@ -36,9 +36,9 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
             p_Reason=dto.Reason.Trim()   
         };
 
-        RecruiterApplication? application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
+        var applications=(await connection.QueryAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure)).ToList();
 
-        if(application is not null && application.Status == RecruiterApplicationStatus.Pending)
+        if(applications.Count!=0   && applications.Any(x=>x.Status==RecruiterApplicationStatus.Pending))
         {
             logger.LogWarning($"User {currentUser.UserId} tried to apply for recruiter again while an application is already in progress");
             throw new ConflictException("Already applied");
@@ -50,8 +50,8 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
             logger.LogCritical("Application to recruiter failed:database responded with 0 rows affected");
             throw new Exception("Internal Server error");
         }
-        application=await connection.QueryFirstAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
-        logger.LogInformation($"USer {currentUser.UserId} Successfully appled to recruiter role");
+        var application=await connection.QueryFirstAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
+        logger.LogInformation($"User {currentUser.UserId} Successfully appled to recruiter role");
         return application.ToDto();
     }
 
@@ -92,17 +92,27 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
 
     public async Task<RecruiterApplicationDto> GetApplicationById(int id)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to access application for recruiter role without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
         if(currentUser.Role!=UserRole.Candidate && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to access the recruiter application {id} without proper permission");
             throw new ForbiddenException("You don't have permission to perform this operation");
         }
         using var connection=context.GetConnection();
         var parameters=new {p_Id=id};
         var application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication>("GetRecruiterApplicationById",parameters,commandType:CommandType.StoredProcedure);
-        if(application is null) throw new NotFoundException("application not found");
+        if(application is null)
+        {
+            logger.LogWarning($"user {currentUser.UserId} tried to access the non existing recruiter application");
+            throw new NotFoundException("application not found");
+        }
         if(application.CandidateId!=currentUser.UserId && currentUser.Role != UserRole.Admin)
         {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to access the recruiter application {id} without proper permission");
             throw new ForbiddenException("You don't have permission to perform this operation");
         }
         return application.ToDto();
@@ -110,8 +120,16 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
 
     public async Task<PagedList<RecruiterApplicationDto>> GetApplications(PaginationParams paginationParams)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
-        if(currentUser.Role!=UserRole.Admin) throw new ForbiddenException("You don't have permission to perform this operation");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to access all the recruiter applications without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
+        if (currentUser.Role != UserRole.Admin)
+        {
+            logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to access the recruiter applications without proper permission");
+            throw new ForbiddenException("You don't have permission to perform this operation");
+        }
         StringBuilder query=new();
         query.Append("select * from recruiterapplications order by id asc ");
         query.Append("limit @limit offset @offset ");
@@ -131,8 +149,16 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
 
     public async Task<PagedList<RecruiterApplicationDto>> GetMyApplications(PaginationParams paginationParams)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
-        if(currentUser.Role!=UserRole.Candidate) throw new ForbiddenException("You don't have permission to perform this operation");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to access previous recruiter applications without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
+        if (currentUser.Role != UserRole.Candidate)
+        {
+            logger.LogWarning($"user {currentUser.UserId} tried to access their previous recruiter applications without proper permission");
+            throw new ForbiddenException("You don't have permission to perform this operation");
+        }
         using var connection=context.GetConnection();
         
         var parameters = new
@@ -155,9 +181,21 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
 
     public async Task<bool> UpdateApplication(int id, UpdateRecruiterApplicationDto dto)
     {
-        if(!currentUser.IsAuthenticated) throw new UnauthorizedException("Unauthorized");
-        if(currentUser.Role!=UserRole.Admin) throw new ForbiddenException("You don't have permission to perform this operation");
-        if(dto.Status==RecruiterApplicationStatus.Pending) throw new BadRequestException("Invalid application status");
+        if (!currentUser.IsAuthenticated)
+        {
+            logger.LogWarning("Someone tried to update the application to recruiter role without proper authentication");
+            throw new UnauthorizedException("Unauthorized");
+        }
+        if (currentUser.Role != UserRole.Admin)
+        {
+            logger.LogWarning($"Forbidden:user {currentUser.UserId} tried to update the application for recruiter role without proper permission");
+            throw new ForbiddenException("You don't have permission to perform this operation");
+        }
+        if (dto.Status == RecruiterApplicationStatus.Pending)
+        {
+            logger.LogWarning($"Admin {currentUser.UserId} tried to update recruiter application {id} with invalid state");
+            throw new BadRequestException("Invalid application status");
+        }
         using var connection=context.GetConnection();
         var parameters=new{
             p_Id=id,
@@ -165,8 +203,16 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
             p_ReviewedBy=currentUser.UserId
         };
         var application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationById",parameters,commandType:CommandType.StoredProcedure);
-        if(application is null) throw new NotFoundException("application not found");
-        if(application.Status!=RecruiterApplicationStatus.Pending) throw new ConflictException("Application has already been reviewed");
+        if(application is null)
+        {
+            logger.LogWarning($"Admin {currentUser.UserId} tries to update the status of an non-existing application");
+            throw new NotFoundException("application not found");
+        }
+        if (application.Status != RecruiterApplicationStatus.Pending)
+        {
+            logger.LogWarning($"Admin {currentUser.UserId} tried to update the state of already processed recruiter application {id}");
+            throw new ConflictException("Application has already been reviewed");
+        }
 
         int rowsaffected=0;
         if (dto.Status == RecruiterApplicationStatus.Approved)
@@ -184,12 +230,18 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
                 };
                 var query="update user set role=@role where id=@id";
                 rowsaffected=await connection.ExecuteAsync(query,approvedParameters,transaction:transaction);
-                if(rowsaffected==0) throw new Exception("Internal server error");
+                if (rowsaffected == 0)
+                {
+                    logger.LogCritical("Updating the recruiter application status failed:database responded with 0 rows affected");
+                    throw new Exception("Internal Server error");
+                }
                 transaction.Commit();
+                logger.LogInformation($"Successfully updated the status of recruiter application with id {id}");
                 return true;
             }
             catch
             {
+                logger.LogCritical("Updating the status of recruiter application failed: database responded with 0 rows affected");
                 transaction.Rollback();
                 throw;
             }
@@ -197,7 +249,12 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
 
 
         rowsaffected=await connection.ExecuteAsync("UpdateRecruiterApplication",parameters,commandType:CommandType.StoredProcedure);
-        if(rowsaffected==0) throw new Exception("Internal server error");
+        if (rowsaffected == 0)
+        {
+            logger.LogCritical("Updating the status of recruiter application failed:database responded with 0 rows affected");
+            throw new Exception("Internal Server error");
+        }
+        logger.LogInformation($"Successfully updated the status of recruiter application with id {id}");
         return true;
     }
 }
