@@ -10,6 +10,7 @@ using JobManagementApi.Enums;
 using Microsoft.VisualBasic;
 using Dapper;
 using JobManagementApi.RequestHelpers.Searching;
+using JobManagementApi.Entities;
 namespace JobManagementApi.Tests.Services;
 
 public class CompanyServiceTests
@@ -224,5 +225,77 @@ public class CompanyServiceTests
         var service=new CompanyService(_context,_currentUser.Object,_logger.Object);
         var exception=await Assert.ThrowsAsync<NotFoundException>(()=>service.GetCompanyById(100));
         Assert.Equal("Company not found",exception.Message);
+    }
+
+    [Theory]
+    [InlineData(UserRole.Admin)]
+    [InlineData(UserRole.Recruiter)]
+    public async Task UpdateCompany_WhenCompanyDoesNotExist_ThrowsNotFoundException(UserRole Role)
+    {
+        _currentUser.Setup(x=>x.IsAuthenticated).Returns(true);
+        _currentUser.Setup(x=>x.Role).Returns(Role);
+        _currentUser.Setup(x=>x.UserId).Returns(4);
+
+        var updatedto=new UpdateCompanyDto(
+            "Unit Test Company 54321",
+            "Test company created during Unit testing",
+            "Hyderabad",
+            "https://unittest.com"
+        );
+
+        var service=new CompanyService(_context,_currentUser.Object,_logger.Object);
+        var exception=await Assert.ThrowsAsync<NotFoundException>(()=>service.UpdateCompany(100,updatedto));
+        Assert.Equal("Company Not found",exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateCompany_WhenUserDoesNotOwnCompany_ThrowsForbiddenException()
+    {
+        _currentUser.Setup(x=>x.IsAuthenticated).Returns(true);
+        _currentUser.Setup(x=>x.Role).Returns(UserRole.Recruiter);
+        _currentUser.Setup(x=>x.UserId).Returns(1);
+
+        var updatedto=new UpdateCompanyDto(
+            "Unit Test Company 54321",
+            "Test company created during Unit testing",
+            "Hyderabad",
+            "https://unittest.com"
+        );
+        var service=new CompanyService(_context,_currentUser.Object,_logger.Object);
+        var exception=await Assert.ThrowsAsync<NotFoundException>(()=>service.UpdateCompany(10,updatedto));
+        Assert.Equal("You do not have permission to update this company",exception.Message);
+    }
+
+    [Theory]
+    [InlineData(UserRole.Admin,4)]
+    [InlineData(UserRole.Recruiter,1)]
+    public async Task UpdateCompany_WhenValidRequest_UpdatesCompanySuccessfully(UserRole Role,int UserId)
+    {
+        _currentUser.Setup(x=>x.IsAuthenticated).Returns(true);
+        _currentUser.Setup(x=>x.Role).Returns(Role);
+        _currentUser.Setup(x=>x.UserId).Returns(UserId);
+
+        var dto=new CreateCompanyDto(
+            "Unit Test Company12345",
+            "Test company created during Unit testing",
+            "Hyderabad",
+            "https://unittest.com"
+        );
+
+        var service=new CompanyService(_context,_currentUser.Object,_logger.Object);
+        var result=await service.CreateCompany(dto);
+
+        var updatedto=new UpdateCompanyDto(
+            "Unit Test Company 54321",
+            "Test company created during Unit testing",
+            "Hyderabad",
+            "https://unittest.com"
+        );
+        bool success=await service.UpdateCompany(result.Id,updatedto);
+        Assert.True(success);
+        var res=await service.GetCompanyById(result.Id);
+        Assert.Equal(updatedto.Name.Trim().ToLower(),res.Name);
+
+        await service.DeleteCompany(result.Id);
     }
 }
