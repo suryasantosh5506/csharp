@@ -262,7 +262,7 @@ public class CompanyServiceTests
             "https://unittest.com"
         );
         var service=new CompanyService(_context,_currentUser.Object,_logger.Object);
-        var exception=await Assert.ThrowsAsync<NotFoundException>(()=>service.UpdateCompany(10,updatedto));
+        var exception=await Assert.ThrowsAsync<ForbiddenException>(()=>service.UpdateCompany(1,updatedto));
         Assert.Equal("You do not have permission to update this company",exception.Message);
     }
 

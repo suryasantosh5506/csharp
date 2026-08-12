@@ -8,7 +8,6 @@ using JobManagementApi.Exceptions;
 using JobManagementApi.Extensions;
 using JobManagementApi.Interfaces;
 using JobManagementApi.RequestHelpers.Pagination;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace JobManagementApi.Services;
 
@@ -33,7 +32,7 @@ public class SkillService(DapperContext context,ICurrentUserService currentUser,
         if(skill is not null)
         {
             logger.LogWarning($"Admin {currentUser.UserId} tried to create already existing skill");
-            throw new ConflictException("Skill alreay exists");
+            throw new ConflictException("Skill already exists");
         }
         int rowsaffected=await connection.ExecuteAsync("CreateSkill",parameters,commandType:CommandType.StoredProcedure);
         if (rowsaffected == 0)
