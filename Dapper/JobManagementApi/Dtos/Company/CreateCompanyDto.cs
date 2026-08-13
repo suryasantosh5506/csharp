@@ -8,9 +8,9 @@ public record CreateCompanyDto(
     string Name,
     string Description,
     [Required]
-    [MaxLength(100)]
+    [MaxLength(500)]
     string Location,
     [Required]
-    [MaxLength(100)]
+    [MaxLength(500)]
     string Website
 );

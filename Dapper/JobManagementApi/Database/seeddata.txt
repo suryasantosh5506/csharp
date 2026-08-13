@@ -1,54 +1,179 @@
-INSERT INTO users
-    (Id, Name, Email, PasswordHash, Role, CreatedAt)
-VALUES
-    (1, 'Rahul Sharma', 'rahul@example.com', 'AQAAAAIAAYagAAAAEFMEpuUv5zsYIGLAkT6AkpQ4BQnRHOxSfI++HEhS797wIyuMqGw5+1QhyA+mhH1aHQ==', 'Recruiter', '2026-08-10 16:34:42'),
-    (4, 'santosh', 'santosh@gmail.com', 'AQAAAAIAAYagAAAAEFQBqon6A+e4X6W/Ok+mhAL1RmMgaIs+p+NZEpv4Wli2Ljbh8HLjbRVXqRCmI6ij+Q==', 'Admin', '2026-08-10 16:46:23'),
-    (5, 'Priya Reddy', 'priya@example.com', 'AQAAAAIAAYagAAAAEPFhvPFdhr8AMpjHt+WHo1F2GfIS+RuHEbVp5lxw9riN2XP2mZ52VpTMxI/tgrmfTw==', 'Recruiter', '2026-08-10 16:54:38'),
-    (6, 'Arjun Kumar', 'arjun@example.com', 'AQAAAAIAAYagAAAAEBak3gAscvKQrii+BqLkjr1wYmTb5+qKIJTaLd3uKqvENw+EWI79gm5gpSq9s9Vvmg==', 'Candidate', '2026-08-10 18:30:08'),
-    (7, 'Neha Singh', 'neha@example.com', 'AQAAAAIAAYagAAAAEHozby/wn59AMwY5W8BVzG4oubH94Pp/cPdxkZXgT4hWem1QwQDMR5RByDZLWKyamA==', 'Candidate', '2026-08-10 18:30:25'),
-    (8, 'test', 'tset@gmail.com', 'AQAAAAIAAYagAAAAEKuRtA0QwsAPsXbEzwk3xyYVBLaX/Cvn0gUlJkEDpCr5CJnsTHLe0jflldN7V6b5lw==', 'Candidate', '2026-08-12 10:11:10');
+SELECT
+    Id,
+    Name,
+    Email,
+    PasswordHash,
+    Role,
+    CreatedAt
+INTO #UsersTemp
+FROM Users;
+
+DELETE FROM Users;
+
+SET IDENTITY_INSERT Users ON;
+
+INSERT INTO Users
+    (Id,Name,Email,PasswordHash,Role,CreatedAt)
+SELECT
+    CASE Email
+        WHEN 'rahul@example.com' THEN 1
+        WHEN 'santosh@gmail.com' THEN 4
+        WHEN 'priya@example.com' THEN 5
+        WHEN 'arjun@example.com' THEN 6
+        WHEN 'neha@example.com' THEN 7
+        WHEN 'test@gmail.com' THEN 8
+    END,
+    Name,
+    Email,
+    PasswordHash,
+    CASE Email
+        WHEN 'rahul@example.com' THEN 'Recruiter'
+        WHEN 'santosh@gmail.com' THEN 'Admin'
+        WHEN 'priya@example.com' THEN 'Recruiter'
+        WHEN 'arjun@example.com' THEN 'Candidate'
+        WHEN 'neha@example.com' THEN 'Candidate'
+        WHEN 'test@gmail.com' THEN 'Candidate'
+    END,
+    CreatedAt
+FROM #UsersTemp;
+
+SET IDENTITY_INSERT Users OFF;
+
+DROP TABLE #UsersTemp;
 
 
-INSERT INTO company
+
+
+USE JobManagement;
+GO
+
+SET IDENTITY_INSERT Company ON;
+
+INSERT INTO Company
     (Id, UserId, Name, Description, Location, Website, CreatedAt)
 VALUES
-    (1, 4, 'technova solutions', 'Software development and consulting company', 'hyderabad', 'https://technova.com', '2026-08-10 16:48:50'),
-    (2, 1, 'TechNova Solutions', 'Software development and technology consulting company', 'Hyderabad', 'https://technova.example.com', '2026-08-11 19:13:43'),
-    (3, 1, 'CloudSphere Technologies', 'Cloud computing and enterprise software solutions', 'Bangalore', 'https://cloudsphere.example.com', '2026-08-10 17:39:52'),
-    (4, 1, 'CodeCraft Labs', 'Product engineering and backend development company', 'Pune', 'https://codecraft.example.com', '2026-08-10 17:39:52'),
-    (5, 1, 'CloudSphere Technologies', 'Cloud computing and enterprise software solutions', 'Bangalore', 'https://cloudsphere.example.com', '2026-08-11 19:13:43'),
-    (6, 1, 'CodeCraft Labs', 'Product engineering and backend development company', 'Pune', 'https://codecraft.example.com', '2026-08-11 19:13:43');
+    (1, 4, 'technova solutions',
+     'Software development and consulting company',
+     'hyderabad', 'https://technova.com', '2026-08-10 16:48:50'),
 
-INSERT INTO job
-    (Id, CompanyId, RecruiterId, Title, Description, Location, MinSalary, MaxSalary, JobType, ExperienceRequired, CreatedAt)
+    (2, 1, 'TechNovaa Solutions',
+     'Software development and technology consulting company',
+     'Hyderabad', 'https://technova.example.com', '2026-08-11 19:13:43'),
+
+    (3, 1, 'CloudSphere Technologies',
+     'Cloud computing and enterprise software solutions',
+     'Bangalore', 'https://cloudsphere.example.com', '2026-08-10 17:39:52'),
+
+    (4, 1, 'CodeCraft Labs',
+     'Product engineering and backend development company',
+     'Pune', 'https://codecraft.example.com', '2026-08-10 17:39:52'),
+
+    (5, 1, 'CloudSpheres Technologies',
+     'Cloud computing and enterprise software solutions',
+     'Bangalore', 'https://cloudsphere.example.com', '2026-08-11 19:13:43'),
+
+    (6, 1, 'CodeCrafting Labs',
+     'Product engineering and backend development company',
+     'Pune', 'https://codecraft.example.com', '2026-08-11 19:13:43');
+
+SET IDENTITY_INSERT Company OFF;
+GO
+
+
+SET IDENTITY_INSERT Job ON;
+
+INSERT INTO Job
+    (Id, CompanyId, RecruiterId, Title, Description, Location,
+     SalaryMin, SalaryMax, JobType, Experience, CreatedAt)
 VALUES
-    (2, 1, 4, 'backend developer', 'Develop scalable backend services using C#, ASP.NET Core, MySQL and Dapper.', 'Bangalore', 60000.00, 100000.00, 'FullTime', 2, '2026-08-10 17:08:33'),
-    (3, 1, 1, 'Junior .NET Developer', 'Build REST APIs using ASP.NET Core, Dapper and MySQL.', 'Hyderabad', 40000.00, 70000.00, 'FullTime', 1, '2026-08-10 17:41:31'),
-    (4, 3, 1, 'Full Stack Developer', 'Work on React frontend and ASP.NET Core backend applications.', 'Pune', 50000.00, 90000.00, 'FullTime', 2, '2026-08-10 17:41:31'),
-    (5, 1, 1, 'Software Engineering Intern', 'Assist the development team in building and testing web applications.', 'Hyderabad', 15000.00, 25000.00, 'Internship', 0, '2026-08-10 17:41:31'),
-    (7, 1, 1, 'C# Developer', 'Develop backend APIs using C# and ASP.NET Core.', 'Hyderabad', 45000.00, 75000.00, 'FullTime', 1, '2026-08-10 17:48:25'),
-    (9, 3, 1, 'Junior Backend Developer', 'Work with MySQL and Dapper to develop backend services.', 'Pune', 35000.00, 60000.00, 'FullTime', 1, '2026-08-10 17:48:25'),
-    (10, 1, 1, 'React Developer', 'Build responsive frontend applications using React.', 'Hyderabad', 40000.00, 70000.00, 'FullTime', 1, '2026-08-10 17:48:25'),
-    (12, 3, 1, 'Software Intern', 'Assist developers with application development and testing.', 'Pune', 12000.00, 20000.00, 'Internship', 0, '2026-08-10 17:48:25'),
-    (13, 1, 1, 'Full Stack Engineer', 'Develop applications using React and ASP.NET Core.', 'Hyderabad', 70000.00, 110000.00, 'FullTime', 3, '2026-08-10 17:48:25'),
-    (15, 3, 1, 'Cloud Backend Engineer', 'Build cloud-ready backend services.', 'Pune', 80000.00, 130000.00, 'FullTime', 3, '2026-08-10 17:48:25'),
-    (16, 1, 1, 'Software Engineer', 'Develop scalable enterprise applications.', 'Hyderabad', 60000.00, 100000.00, 'FullTime', 2, '2026-08-10 17:48:25');
+    (2, 1, 4, 'backend developer',
+     'Develop scalable backend services using C#, ASP.NET Core, MySQL and Dapper.',
+     'Bangalore', 60000.00, 100000.00, 'FullTime', 2, '2026-08-10 17:08:33'),
 
-INSERT INTO jobapplication
-    (Id, JobId, CandidateId, ResumeUrl, Status, AppliedAt)
+    (3, 1, 1, 'Junior .NET Developer',
+     'Build REST APIs using ASP.NET Core, Dapper and MySQL.',
+     'Hyderabad', 40000.00, 70000.00, 'FullTime', 1, '2026-08-10 17:41:31'),
+
+    (4, 3, 1, 'Full Stack Developer',
+     'Work on React frontend and ASP.NET Core backend applications.',
+     'Pune', 50000.00, 90000.00, 'FullTime', 2, '2026-08-10 17:41:31'),
+
+    (5, 1, 1, 'Software Engineering Intern',
+     'Assist the development team in building and testing web applications.',
+     'Hyderabad', 15000.00, 25000.00, 'Internship', 0, '2026-08-10 17:41:31'),
+
+    (7, 1, 1, 'C# Developer',
+     'Develop backend APIs using C# and ASP.NET Core.',
+     'Hyderabad', 45000.00, 75000.00, 'FullTime', 1, '2026-08-10 17:48:25'),
+
+    (9, 3, 1, 'Junior Backend Developer',
+     'Work with MySQL and Dapper to develop backend services.',
+     'Pune', 35000.00, 60000.00, 'FullTime', 1, '2026-08-10 17:48:25'),
+
+    (10, 1, 1, 'React Developer',
+     'Build responsive frontend applications using React.',
+     'Hyderabad', 40000.00, 70000.00, 'FullTime', 1, '2026-08-10 17:48:25'),
+
+    (12, 3, 1, 'Software Intern',
+     'Assist developers with application development and testing.',
+     'Pune', 12000.00, 20000.00, 'Internship', 0, '2026-08-10 17:48:25'),
+
+    (13, 1, 1, 'Full Stack Engineer',
+     'Develop applications using React and ASP.NET Core.',
+     'Hyderabad', 70000.00, 110000.00, 'FullTime', 3, '2026-08-10 17:48:25'),
+
+    (15, 3, 1, 'Cloud Backend Engineer',
+     'Build cloud-ready backend services.',
+     'Pune', 80000.00, 130000.00, 'FullTime', 3, '2026-08-10 17:48:25'),
+
+    (16, 1, 1, 'Software Engineer',
+     'Develop scalable enterprise applications.',
+     'Hyderabad', 60000.00, 100000.00, 'FullTime', 2, '2026-08-10 17:48:25');
+
+SET IDENTITY_INSERT Job OFF;
+GO
+
+SET IDENTITY_INSERT Application ON;
+
+INSERT INTO Application
+    (Id, JobId, CandidateId, ResumeUrl, Status, CreatedAt)
 VALUES
-    (2, 4, 5, 'https://resume.pdf', 'Applied', '2026-08-10 17:47:52'),
-    (3, 2, 5, 'https://backend.pdf', 'Shortlisted', '2026-08-10 17:47:52'),
-    (4, 3, 5, 'https://fullstack.pdf', 'Applied', '2026-08-10 17:47:52'),
-    (42, 12, 5, 'https://backend-priya.pdf', 'Shortlisted', '2026-08-10 18:32:35'),
-    (43, 13, 5, 'https://fullstack-priya.pdf', 'Rejected', '2026-08-10 18:32:35'),
-    (45, 12, 6, 'https://backend-arjun.pdf', 'Applied', '2026-08-10 18:32:35'),
-    (46, 4, 6, 'https://intern-arjun.pdf', 'Applied', '2026-08-10 18:32:35'),
-    (47, 4, 7, 'https://resume-neha.pdf', 'Applied', '2026-08-10 18:32:35'),
-    (48, 3, 7, 'https://fullstack-neha.pdf', 'Hired', '2026-08-10 18:32:35'),
-    (49, 5, 7, 'https://senior-neha.pdf', 'Applied', '2026-08-10 18:32:35');
+    (2, 4, 5, 'https://resume.pdf',
+     'Applied', '2026-08-10 17:47:52'),
 
-INSERT INTO skill
+    (3, 2, 5, 'https://backend.pdf',
+     'Shortlisted', '2026-08-10 17:47:52'),
+
+    (4, 3, 5, 'https://fullstack.pdf',
+     'Applied', '2026-08-10 17:47:52'),
+
+    (42, 12, 5, 'https://backend-priya.pdf',
+     'Shortlisted', '2026-08-10 18:32:35'),
+
+    (43, 13, 5, 'https://fullstack-priya.pdf',
+     'Rejected', '2026-08-10 18:32:35'),
+
+    (45, 12, 6, 'https://backend-arjun.pdf',
+     'Applied', '2026-08-10 18:32:35'),
+
+    (46, 4, 6, 'https://intern-arjun.pdf',
+     'Applied', '2026-08-10 18:32:35'),
+
+    (47, 4, 7, 'https://resume-neha.pdf',
+     'Applied', '2026-08-10 18:32:35'),
+
+    (48, 3, 7, 'https://fullstack-neha.pdf',
+     'Hired', '2026-08-10 18:32:35'),
+
+    (49, 5, 7, 'https://senior-neha.pdf',
+     'Applied', '2026-08-10 18:32:35');
+
+SET IDENTITY_INSERT Application OFF;
+GO
+
+SET IDENTITY_INSERT Skills ON;
+
+INSERT INTO Skills
     (Id, Name)
 VALUES
     (1, 'c#'),
@@ -61,7 +186,10 @@ VALUES
     (8, 'JavaScript'),
     (9, 'SQL');
 
-INSERT INTO jobskill
+SET IDENTITY_INSERT Skills OFF;
+GO
+
+INSERT INTO JobSkills
     (JobId, SkillId)
 VALUES
     (2, 1),
@@ -77,15 +205,42 @@ VALUES
     (4, 5),
     (3, 6),
     (2, 7),
-    (5, 7)
+    (5, 7),
     (4, 8),
     (3, 9),
-    (5, 9)
+    (5, 9);
+GO
 
-INSERT INTO recruiterapplication
-    (Id, RecruiterId, Status, AppliedAt, ReviewedAt, ReviewedBy, Message)
+SET IDENTITY_INSERT RecruiterApplications ON;
+
+INSERT INTO RecruiterApplications
+    (Id, CandidateId, Status, AppliedAt, ReviewedAt, ReviewedBy, Reason)
 VALUES
-    (1, 1, 'Approved', '2026-08-10 16:50:44', '2026-08-10 16:53:05', 4, 'I want to recruit candidates and manage job openings for my companies.'),
-    (3, 5, 'Approved', '2026-08-08 10:30:00', '2026-08-09 11:00:00', 4, 'I have experience working with software projects and would like to recruit candidates for our technical roles.'),
-    (4, 5, 'Rejected', '2026-08-05 14:20:00', '2026-08-06 10:15:00', 4, 'I would like to help the company find qualified backend and full stack developers.'),
-    (6, 5, 'Pending', '2026-08-10 18:36:34', NULL, NULL, 'I am interested in helping the company recruit skilled candidates and manage technical job openings.');
+    (1, 1, 'Approved',
+     '2026-08-10 16:50:44',
+     '2026-08-10 16:53:05',
+     4,
+     'I want to recruit candidates and manage job openings for my companies.'),
+
+    (3, 5, 'Approved',
+     '2026-08-08 10:30:00',
+     '2026-08-09 11:00:00',
+     4,
+     'I have experience working with software projects and would like to recruit candidates for our technical roles.'),
+
+    (4, 5, 'Rejected',
+     '2026-08-05 14:20:00',
+     '2026-08-06 10:15:00',
+     4,
+     'I would like to help the company find qualified backend and full stack developers.'),
+
+    (6, 5, 'Pending',
+     '2026-08-10 18:36:34',
+     NULL,
+     NULL,
+     'I am interested in helping the company recruit skilled candidates and manage technical job openings.');
+
+SET IDENTITY_INSERT RecruiterApplications OFF;
+GO
+
+

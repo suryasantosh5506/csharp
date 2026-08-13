@@ -31,12 +31,13 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
 
         var parameters = new
         {
-            p_CandidateId=currentUser.UserId,
-            p_Status=RecruiterApplicationStatus.Pending,
+            p_CandidateId = currentUser.UserId,
+            p_Status=RecruiterApplicationStatus.Pending.ToString(),
             p_Reason=dto.Reason.Trim()   
         };
 
-        var applications=(await connection.QueryAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure)).ToList();
+        var applications=(await connection.QueryAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",new{p_CandidateId=currentUser.UserId},
+                            commandType:CommandType.StoredProcedure)).ToList();
 
         if(applications.Count!=0   && applications.Any(x=>x.Status==RecruiterApplicationStatus.Pending))
         {
@@ -50,7 +51,8 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
             logger.LogCritical("Application to recruiter failed:database responded with 0 rows affected");
             throw new Exception("Internal Server error");
         }
-        var application=await connection.QueryFirstAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",parameters,commandType:CommandType.StoredProcedure);
+        var application=await connection.QueryFirstAsync<RecruiterApplication>("GetRecruiterApplicationsByCandidateId",new{p_CandidateId=currentUser.UserId},
+                            commandType:CommandType.StoredProcedure);
         logger.LogInformation($"User {currentUser.UserId} Successfully appled to recruiter role");
         return application.ToDto();
     }
@@ -132,7 +134,7 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
         }
         StringBuilder query=new();
         query.Append("select * from recruiterapplications order by id asc ");
-        query.Append("limit @limit offset @offset ");
+        query.Append("offset @offset rows fetch next @limit rows only ");
         using var connection=context.GetConnection();
 
         var parameters = new
@@ -170,7 +172,7 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
 
         StringBuilder query=new();
         query.Append("select * from recruiterapplications where CandidateId=@id order by id asc ");
-        query.Append("limit @limit offset @offset ");
+        query.Append("offset @offset rows fetch next @limit rows only ");
 
         int totalCount=await connection.QuerySingleAsync<int>("select count(*)  from recruiterapplications where CandidateId=@id",parameters);
         var application=await connection.QueryAsync<RecruiterApplication>(query.ToString(),parameters);
@@ -196,25 +198,32 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
             logger.LogWarning($"Admin {currentUser.UserId} tried to update recruiter application {id} with invalid state");
             throw new BadRequestException("Invalid application status");
         }
+
         using var connection=context.GetConnection();
-        var parameters=new{
-            p_Id=id,
-            p_Status=dto.Status.ToString(),
-            p_ReviewedBy=currentUser.UserId
-        };
-        var application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationById",parameters,commandType:CommandType.StoredProcedure);
+
+        var application=await connection.QueryFirstOrDefaultAsync<RecruiterApplication?>("GetRecruiterApplicationById",new {p_Id=id},commandType:CommandType.StoredProcedure);
+
         if(application is null)
         {
             logger.LogWarning($"Admin {currentUser.UserId} tries to update the status of an non-existing application");
             throw new NotFoundException("application not found");
         }
+
         if (application.Status != RecruiterApplicationStatus.Pending)
         {
             logger.LogWarning($"Admin {currentUser.UserId} tried to update the state of already processed recruiter application {id}");
             throw new ConflictException("Application has already been reviewed");
         }
 
+        var parameters=new
+        {
+            p_Id=id,
+            p_Status=dto.Status.ToString(),
+            p_ReviewedBy=currentUser.UserId
+        };
+
         int rowsaffected=0;
+
         if (dto.Status == RecruiterApplicationStatus.Approved)
         {
             connection.Open();
@@ -222,19 +231,25 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
             try
             {
                 rowsaffected=await connection.ExecuteAsync("UpdateRecruiterApplication",parameters,commandType:CommandType.StoredProcedure,transaction:transaction);
+
                 if(rowsaffected==0) throw new Exception("Internal server error");
+
                 var approvedParameters = new
                 {
                     role=UserRole.Recruiter.ToString(),
                     id=application.CandidateId
                 };
-                var query="update user set role=@role where id=@id";
+
+                var query="update Users set Role=@role where Id=@id";
+
                 rowsaffected=await connection.ExecuteAsync(query,approvedParameters,transaction:transaction);
+
                 if (rowsaffected == 0)
                 {
                     logger.LogCritical("Updating the recruiter application status failed:database responded with 0 rows affected");
                     throw new Exception("Internal Server error");
                 }
+
                 transaction.Commit();
                 logger.LogInformation($"Successfully updated the status of recruiter application with id {id}");
                 return true;
@@ -247,13 +262,14 @@ public class RecruiterApplicationService(DapperContext context,ICurrentUserServi
             }
         }
 
-
         rowsaffected=await connection.ExecuteAsync("UpdateRecruiterApplication",parameters,commandType:CommandType.StoredProcedure);
+
         if (rowsaffected == 0)
         {
             logger.LogCritical("Updating the status of recruiter application failed:database responded with 0 rows affected");
             throw new Exception("Internal Server error");
         }
+
         logger.LogInformation($"Successfully updated the status of recruiter application with id {id}");
         return true;
     }

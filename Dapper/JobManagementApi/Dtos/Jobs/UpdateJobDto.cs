@@ -5,11 +5,10 @@ namespace JobManagementApi.Dtos.Jobs;
 
 public record UpdateJobDto(
     [Required]
-    [MaxLength(300)]
+    [MaxLength(500)]
     string Title,
     string Description,
     [Required]
-    [MaxLength(100)]
     string Location,
     [Required]
     decimal SalaryMin,

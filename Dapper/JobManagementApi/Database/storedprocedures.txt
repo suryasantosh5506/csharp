@@ -1,96 +1,96 @@
 use jobmanagement;
 
-delimiter //
-create procedure GetUserByEmail(in p_Email varchar(100))
-begin
-	select * from User where email=p_Email;
-end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure InsertUser(in p_Name varchar(100),
-							in p_Email varchar(100),
-                            in p_PasswordHash varchar(350),
-                            in p_Role varchar(20)
-                            )
+create procedure GetUserByEmail 
+	@p_Email varchar(100)
+as
 begin
-	insert into User (Name,Email,PasswordHash,Role) values (p_Name,p_Email,p_PasswordHash,p_Role);
+	select * from dbo.Users where Email=@p_Email;
+	
 end;
 
-//
-delimiter ;
+go
 
-delimiter //
-create procedure InsertCompany(in p_UserId int,
-                            in p_Name varchar(100),
-							in p_Description varchar(100),
-                            in p_Location varchar(350),
-                            in p_Website varchar(20)
-                            )
+create procedure InsertUser
+						@p_Name varchar(100),
+						@p_Email varchar(100),
+						@p_PasswordHash varchar(500),
+						@p_Role varchar(20)
+
+as 
+
 begin
-	insert into Company (UserId,Name,Description,Location,Website) values (p_UserId,p_Name,p_Description,p_Location,p_Website);
+	insert into dbo.users(name,email,passwordhash,role) values (@p_Name,@p_Email,@p_PasswordHash,@p_Role);
+
 end;
+go
 
-//
-delimiter ;
-
-delimiter //
-create procedure UpdateCompany(in p_Id int,
-							in p_Name varchar(100),
-							in p_Description varchar(100),
-                            in p_Location varchar(350),
-                            in p_Website varchar(20)
-                            )
+create procedure InsertCompany
+							@p_UserId int,
+							@p_Name varchar(100),
+							@p_Description text,
+							@p_Location varchar(500),
+							@p_Website varchar(500)
+as
 begin
-	update Company set Name=p_Name,description=p_Description,location=p_Location,website=p_Website where id=p_Id;
+	insert into dbo.Company (UserId,Name,Description,Location,Website) values (@p_UserId,@p_Name,@p_Description,@p_Location,@p_Website);
 end;
+go
 
-//
-delimiter ;
+create procedure UpdateCompany
+							@p_Id int,
+							@p_Name varchar(100),
+							@p_Description text,
+							@p_Location varchar(500),
+							@p_Website varchar(500)
 
-delimiter //
-create procedure GetCompanyById(in p_Id int)
+as
 begin
-	select * from company where id=p_Id;
+	update dbo.Company set Name=@p_Name,description=@p_Description,location=@p_Location,website=@p_Website where id=@p_Id;
 end;
+go
 
-//
-delimiter ;
+create procedure GetCompanyById
+							@p_Id int
 
-delimiter //
-create procedure DeleteCompanyById(in p_Id int)
+as
 begin
-	delete from company where id=p_Id;
+	select * from dbo.company where id=@p_Id;
 end;
+go
 
-//
-delimiter ;
-
-delimiter //
-create procedure GetJobById(in p_Id int)
+create procedure DeleteCompanyById
+								@p_Id int
+as
 begin
-	select * from Job where id=p_Id;
+	delete from dbo.company where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
+create procedure GetJobById
+						@p_Id int
+as
+begin
+	select * from dbo.Job where id=@p_Id;
+end;
+go
 
-delimiter //
 
 CREATE PROCEDURE InsertJob(
-    IN p_CompanyId INT,
-    IN p_RecruiterId INT,
-    IN p_Title VARCHAR(300),
-    IN p_Description TEXT,
-    IN p_Location VARCHAR(100),
-    IN p_SalaryMin DECIMAL(10,2),
-    IN p_SalaryMax DECIMAL(15,2),
-    IN p_JobType VARCHAR(100),
-    IN p_Experience INT
+    @p_CompanyId INT,
+    @p_RecruiterId INT,
+    @p_Title VARCHAR(500),
+    @p_Description TEXT,
+    @p_Location text,
+    @p_SalaryMin DECIMAL(15,2),
+    @p_SalaryMax DECIMAL(15,2),
+    @p_JobType VARCHAR(100),
+    @p_Experience INT
 )
+as
 BEGIN
-    INSERT INTO Job (
+    INSERT INTO dbo.Job (
         CompanyId,
         RecruiterId,
         Title,
@@ -102,220 +102,199 @@ BEGIN
         Experience
     )
     VALUES (
-        p_CompanyId,
-        p_RecruiterId,
-        p_Title,
-        p_Description,
-        p_Location,
-        p_SalaryMin,
-        p_SalaryMax,
-        p_JobType,
-        p_Experience
+        @p_CompanyId,
+        @p_RecruiterId,
+        @p_Title,
+        @p_Description,
+        @p_Location,
+        @p_SalaryMin,
+        @p_SalaryMax,
+        @p_JobType,
+        @p_Experience
     );
-END //
+END;
 
-delimiter ;
+go
 
-delimiter //
-create procedure UpdateJob(in p_Id int,
-								IN p_Title VARCHAR(300),
-								IN p_Description TEXT,
-								IN p_Location VARCHAR(100),
-								IN p_SalaryMin DECIMAL(10,2),
-								IN p_SalaryMax DECIMAL(15,2),
-								IN p_JobType VARCHAR(100),
-								IN p_Experience INT 
+
+create procedure UpdateJob(@p_Id int,
+								@p_Title VARCHAR(500),
+								@p_Description TEXT,
+								@p_Location TEXT,
+								@p_SalaryMin DECIMAL(15,2),
+								@p_SalaryMax DECIMAL(15,2),
+								@p_JobType VARCHAR(100),
+								@p_Experience INT 
 								)
-                                
+as                 
 begin
-	update Job set title=p_Title,description=p_Description,location=p_Location,salarymin=p_SalaryMin,salarymax=p_SalaryMax,jobtype=p_JobType
-					,experience=p_Experience  where id=p_Id;
+	update dbo.Job set title=@p_Title,description=@p_Description,location=@p_Location,salarymin=@p_SalaryMin,salarymax=@p_SalaryMax,jobtype=@p_JobType
+					,experience=@p_Experience  where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure DeleteJob(in p_Id int)
+create procedure DeleteJob(@p_Id int)
+as
 begin
-	delete from Job where id=p_Id;
+	delete from dbo.Job where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure GetJobApplicationById(in p_Id int)
+
+create procedure GetJobApplicationById(@p_Id int)
+as
 begin
-	select * from application where id=p_Id;
+	select * from dbo.application where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure GetJobApplicationsByUserId(in p_Id int)
+create procedure GetJobApplicationsByUserId(@p_Id int)
+as
 begin
-	select * from application where CandidateId=p_Id;
+	select * from dbo.application where CandidateId=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure CreateApplication(in p_JobId int,
-									in p_CandidateId int,
-                                    in p_ResumeUrl text,
-                                    in p_Status varchar(50)
+create procedure CreateApplication(@p_JobId int,
+									@p_CandidateId int,
+                                    @p_ResumeUrl text,
+                                    @p_Status varchar(100)
 									)
+as
 begin
-	insert into application (jobid,candidateid,resumeurl,status) values(p_JobId,p_CandidateId,p_ResumeUrl,p_Status);
+	insert into dbo.application (jobid,candidateid,resumeurl,status) values(@p_JobId,@p_CandidateId,@p_ResumeUrl,@p_Status);
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure UpdateApplicationStatus(in p_Id int,
-                                    in p_Status varchar(50)
+create procedure UpdateApplicationStatus(@p_Id int,
+                                    @p_Status varchar(100)
 									)
+as
 begin
-	update application set status=p_Status where id=p_Id;
+	update dbo.application set status=@p_Status where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure DeleteApplication(in p_Id int)
+create procedure DeleteApplication(@p_Id int)
+as
 begin
-	delete from application where id=p_Id;
+	delete from dbo.application where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure GetJobApplicationsByJobId(in p_JobId int)
+create procedure GetJobApplicationsByJobId(@p_JobId int)
+as
 begin
-	select * from application where JobId=p_JobId;
+	select * from dbo.application where JobId=@p_JobId;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure GetSkillById(in p_Id int)
+create procedure GetSkillById(@p_Id int)
+as
 begin
-	select * from skills where id=p_Id;
+	select * from dbo.skills where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure UpdateSkill(in p_Id int,
-							 in p_Name varchar(100)
+create procedure UpdateSkill(@p_Id int,
+							 @p_Name varchar(100)
                              )
+as
 begin
-	update skills set name=p_Name where id=p_Id;
+	update skills set name=@p_Name where id=@p_Id;
 end;
-//
-delimiter ;
+GO
 
-delimiter //
-create procedure DeleteSkill(in p_Id int)
+create procedure DeleteSkill(@p_Id int)
+as
 begin
-	delete from skills where id=p_Id;
+	delete from skills where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure CreateSkill(in p_Name varchar(100))
+create procedure CreateSkill(@p_Name varchar(100))
+as
 begin
-	insert into skills (name) values(p_Name);
+	insert into skills (name) values(@p_Name);
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure AddJobSkill(in p_JobId int,
-							 in p_SkillId int
+create procedure AddJobSkill(@p_JobId int,
+							 @p_SkillId int
 							)
+as
 begin
-	insert into JobSkills values (p_JobId,p_SkillId);
+	insert into JobSkills values (@p_JobId,@p_SkillId);
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure RemoveJobSkill(in p_JobId int,
-							 in p_SkillId int
+create procedure RemoveJobSkill(@p_JobId int,
+							 @p_SkillId int
 							)
+as
 begin
-	delete from jobskills where jobid=p_JobId and skillid=p_SkillId;
+	delete from dbo.jobskills where jobid=@p_JobId and skillid=@p_SkillId;
 end;
-//
-delimiter ;
-
-DELIMITER //
+go
 
 CREATE PROCEDURE GetJobSkills(
-    IN p_JobId INT
+    @p_JobId INT
 )
-BEGIN
-    select s.Id,s.Name
-    from JobSkills js
-    inner join Skills s
-	on js.SkillId=s.Id
-    where js.JobId=p_JobId;
-END //
-
-DELIMITER ;
-
-delimiter //
-create procedure CreateRecruiterApplication(in p_CandidateId int,
-											in p_Status varchar(30),
-											in p_Reason varchar(300)
-											)
+as
 begin
-	insert into recruiterapplications (candidateId,status,reason) values (p_CandidateId,p_Status,p_Reason);
+    select s.Id,s.Name
+    from dbo.JobSkills js
+    inner join dbo.Skills s
+	on js.SkillId=s.Id
+    where js.JobId=@p_JobId;
+END;
+go
+
+create procedure CreateRecruiterApplication(@p_CandidateId int,
+											@p_Status varchar(30),
+											@p_Reason varchar(500)
+											)
+as
+begin
+	insert into recruiterapplications (candidateId,status,reason) values (@p_CandidateId,@p_Status,@p_Reason);
 
 end;                                            
-// 
-delimiter ;
+go
 
-delimiter //
-create procedure GetRecruiterApplicationById(in p_Id int)
+create procedure GetRecruiterApplicationById(@p_Id int)
+as
 begin
-	select * from recruiterapplications where id=p_Id;
+	select * from recruiterapplications where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure DeleteRecruiterApplication(in p_Id int)
+create procedure DeleteRecruiterApplication(@p_Id int)
+as
 begin
-	delete from recruiterapplications where id=p_Id;
+	delete from dbo.recruiterapplications where id=@p_Id;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure GetRecruiterApplicationsByCandidateId(in p_CandidateId int)
+create procedure GetRecruiterApplicationsByCandidateId(@p_CandidateId int)
+as
 begin
-	select * from recruiterapplications where candidateid=p_CandidateId order by id desc;
+	select * from dbo.recruiterapplications where candidateid=@p_CandidateId order by id desc;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure GetRecruiterApplications()
+create procedure GetRecruiterApplications
+as
 begin
-	select * from recruiterapplications;
+	select * from dbo.recruiterapplications;
 end;
-//
-delimiter ;
+go
 
-delimiter //
-create procedure UpdateRecruiterApplication(in p_Id int,
-											in p_Status varchar(30),
-                                            in p_ReviewedBy int
+create procedure UpdateRecruiterApplication(@p_Id int,
+											@p_Status varchar(100),
+                                            @p_ReviewedBy int
 											)
+as
 begin                                            
-      update recruiterapplications set reviewedAt=now(),status=p_Status,reviewedby=p_ReviewedBy where id=p_Id;
+      update recruiterapplications set reviewedAt=getdate(),status=@p_Status,reviewedby=@p_ReviewedBy where id=@p_Id;
 end;
-//
-delimiter ;                                            
+go

@@ -14,7 +14,7 @@ public class AuthService(DapperContext context,PasswordHasher<User> passwordHash
     public async Task<LoginResponseDto> Login(LoginDto dto)
     {
         using var connection=context.GetConnection();
-        var query="Select * from User where email=@email";
+        var query="Select * from Users where email=@email";
         User? user = await connection.QueryFirstOrDefaultAsync<User?>(query, new { email = dto.Email });
         if(user is null)
         {

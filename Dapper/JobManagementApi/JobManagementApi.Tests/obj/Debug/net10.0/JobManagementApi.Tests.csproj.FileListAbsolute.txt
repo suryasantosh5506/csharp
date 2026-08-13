@@ -38,7 +38,6 @@ C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\JobManagemen
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\JobManagementApi.Tests\bin\Debug\net10.0\Microsoft.TestPlatform.Utilities.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\JobManagementApi.Tests\bin\Debug\net10.0\Microsoft.VisualStudio.TestPlatform.Common.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\JobManagementApi.Tests\bin\Debug\net10.0\Moq.dll
-C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\JobManagementApi.Tests\bin\Debug\net10.0\MySqlConnector.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\JobManagementApi.Tests\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\JobManagementApi.Tests\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\JobManagementApi.Tests\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll

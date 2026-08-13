@@ -205,7 +205,7 @@ public class JobService(DapperContext context,ICurrentUserService currentUser,IL
             });
         }
         
-        query.Append("limit @limit offset @offset ");
+        query.Append("offset @offset row fetch next @limit rows only ");
 
         int totalCount=await connection.ExecuteScalarAsync<int>(countQuery.ToString(),parameters);
 
@@ -252,12 +252,26 @@ public class JobService(DapperContext context,ICurrentUserService currentUser,IL
             logger.LogWarning($"Forbidden:User {currentUser.UserId} tried to update the job without proper permission");
             throw new ForbiddenException("Only the owner and admin can update a Job");
         }
+
         string query="Select * from job where Title=@p_Title and CompanyId=@p_CompanyId and Id<>@p_Id";
 
-        var parameters = new
+        var checkParameters = new
         {
             p_Id=id,
             p_CompanyId=job.CompanyId,
+            p_Title=dto.Title.Trim().ToLower()
+        };
+
+        job=await connection.QuerySingleOrDefaultAsync<Job?>(query,checkParameters);
+        if(job is not null)
+        {
+            logger.LogWarning($"User {currentUser.UserId} tried to update the job with already existing title");
+            throw new ConflictException("Job with specified title already exists");
+        }
+
+        var updateParameters = new
+        {
+            p_Id=id,
             p_Title=dto.Title.Trim().ToLower(),
             p_Description=string.IsNullOrEmpty(dto.Description)?string.Empty:dto.Description,
             p_Location=dto.Location,
@@ -267,14 +281,7 @@ public class JobService(DapperContext context,ICurrentUserService currentUser,IL
             p_Experience=dto.Experience
         };
 
-        job=await connection.QuerySingleOrDefaultAsync<Job?>(query,parameters);
-        if(job is not null)
-        {
-            logger.LogWarning($"User {currentUser.UserId} tried to update the job with already existing title");
-            throw new ConflictException("Job with specified title already exists");
-        }
-
-        int rowsaffected=await connection.ExecuteAsync("UpdateJob",parameters,commandType:CommandType.StoredProcedure);
+        int rowsaffected=await connection.ExecuteAsync("UpdateJob",updateParameters,commandType:CommandType.StoredProcedure);
         if (rowsaffected == 0)
         {
             logger.LogCritical("Job update failed:Database responded with 0 rows affected");

@@ -4,6 +4,6 @@ namespace JobManagementApi.Dtos.RecruiterApplication;
 
 public record CreateRecruiterApplicationDto(
     [Required]
-    [MaxLength(300)]
+    [MaxLength(500)]
     string Reason
 );

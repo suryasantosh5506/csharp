@@ -1,0 +1,42 @@
+{
+  "name": "Rahul Sharma",
+  "email": "rahul@example.com",
+  "password": "string"
+}
+
+id=1,role=recruiter
+
+{
+  "name": "santosh",
+  "email": "santosh@gmail.com",
+  "password": "string"
+}
+id=4,role=admin
+
+{
+  "name": "Priya Reddy",
+  "email": "priya@example.com",
+  "password": "string"
+}
+id=5,role=recruiter
+
+{
+  "name": "Arjun Kumar",
+  "email": "arjun@example.com",
+  "password": "string"
+}
+id=6,role=candidate
+
+{
+  "name": "Neha Singh",
+  "email": "neha@example.com",
+  "password": "string"
+}
+id=7,role=candidate
+
+{
+  "name": "test",
+  "email": "test@gmail.com",
+  "password": "string"
+}
+id=8,role=candidate

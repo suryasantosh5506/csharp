@@ -35,7 +35,6 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         }
         var parameters=new
         {
-          p_Id=currentUser.UserId,
           p_JobId=jobId, 
           p_CandidateId=currentUser.UserId, 
           p_ResumeUrl=dto.ResumeUrl,
@@ -158,7 +157,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         StringBuilder query=new();
         
         query.Append("select * from application where jobid=@id order by id asc ");
-        query.Append("limit @limit offset @offset");
+        query.Append("offset @offset row fetch next @limit rows only");
 
         var parameters = new
         {
@@ -190,7 +189,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
         StringBuilder query=new();
 
         query.Append("select * from application where candidateId=@id order by id asc ");
-        query.Append("limit @limit offset @offset");
+        query.Append("offset @offset rows fetch next @limit rows only");
 
         var parameters = new
         {
@@ -225,7 +224,7 @@ public class JobApplicationService(DapperContext context,ICurrentUserService cur
             p_Status=dto.Status.ToString()
         };
         
-        var jobApplication=await connection.QueryFirstOrDefaultAsync<Application?>("GetJobApplicationById",parameters,
+        var jobApplication=await connection.QueryFirstOrDefaultAsync<Application?>("GetJobApplicationById",new{p_Id=id},
                             commandType:CommandType.StoredProcedure);
         if(jobApplication is null)
         {

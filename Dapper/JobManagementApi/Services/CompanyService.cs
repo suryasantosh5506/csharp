@@ -119,7 +119,7 @@ public class CompanyService(DapperContext context, ICurrentUserService currentUs
             countQuery.Append(conditions);
         }
 
-        query.Append(" order by id asc limit @limit offset @offset");
+        query.Append(" order by id asc offset @offset rows fetch next @limit rows only");
 
         var parameters=new{
             limit=companyParams.PageSize,

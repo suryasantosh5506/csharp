@@ -78,7 +78,7 @@ public class SkillService(DapperContext context,ICurrentUserService currentUser,
     public async Task<PagedList<SkillDto>> GetAllSkillsAsync(PaginationParams paginationParams)
     {
         using var connection=context.GetConnection();
-        string query="select * from skills order by id asc limit @limit offset @offset ";
+        string query="select * from skills order by id asc offset @offset rows fetch next @limit rows only ";
         var parameters = new
         {
             limit=paginationParams.PageSize,

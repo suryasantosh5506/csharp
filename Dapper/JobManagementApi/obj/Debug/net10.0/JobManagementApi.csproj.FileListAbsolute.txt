@@ -91,7 +91,6 @@ C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\bin\Debug\ne
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\bin\Debug\net10.0\Microsoft.OpenApi.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\bin\Debug\net10.0\Microsoft.SqlServer.Server.dll
-C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\bin\Debug\net10.0\MySqlConnector.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\Ace-Santosh\Desktop\Learning c#\c#\Dapper\JobManagementApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
